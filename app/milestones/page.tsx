@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/Button";
 import { useWallet } from "@/lib/WalletContext";
-import { CONTRACTS, readContract } from "@/lib/genlayer";
+import { CONTRACTS, readContract, requireAddress } from "@/lib/genlayer";
 import { useSubmitMilestoneProof, useVerifyMilestone } from "@/lib/hooks";
 import { Proposal, Milestone } from "@/lib/types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -36,12 +36,14 @@ export default function MilestonesPage() {
       return;
     }
     try {
-      const count = (await readContract(CONTRACTS.proposalManager, "get_proposal_count", [])) as bigint;
+      const pmAddr = requireAddress(CONTRACTS.proposalManager, "ProposalManager");
+      const mmAddr = requireAddress(CONTRACTS.milestoneManager, "MilestoneManager");
+      const count = (await readContract(pmAddr, "get_proposal_count", [])) as bigint;
       const propIds = Array.from({ length: Number(count) }, (_, i) => `prop_${i}`);
 
       const results = await Promise.all(
         propIds.map(async (pid) => {
-          const pJson = await readContract(CONTRACTS.proposalManager, "get_proposal", [pid]);
+          const pJson = await readContract(pmAddr, "get_proposal", [pid]);
           if (!pJson || pJson === "") return null;
           const proposal = JSON.parse(pJson as string) as Proposal;
 
@@ -49,13 +51,13 @@ export default function MilestonesPage() {
 
           let msIds: string[] = [];
           try {
-            msIds = (await readContract(CONTRACTS.milestoneManager, "get_milestones_for_proposal", [pid])) as string[];
+            msIds = (await readContract(mmAddr, "get_milestones_for_proposal", [pid])) as string[];
           } catch {
             msIds = [];
           }
           const milestones = await Promise.all(
             msIds.map(async (mid) => {
-              const mJson = await readContract(CONTRACTS.milestoneManager, "get_milestone", [mid]);
+              const mJson = await readContract(mmAddr, "get_milestone", [mid]);
               return JSON.parse(mJson as string) as Milestone;
             })
           );

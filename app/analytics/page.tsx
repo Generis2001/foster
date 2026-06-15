@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import AppLayout from "@/components/AppLayout";
-import { CONTRACTS, readContract } from "@/lib/genlayer";
+import { CONTRACTS, readContract, requireAddress } from "@/lib/genlayer";
 import { Grant, Proposal } from "@/lib/types";
 import { Loader2, BarChart3, Coins, FileText, CheckCircle, TrendingUp } from "lucide-react";
 
@@ -17,20 +17,22 @@ export default function AnalyticsPage() {
         return;
       }
       try {
-        const grantIds = (await readContract(CONTRACTS.grantManager, "get_all_grant_ids", [])) as string[];
+        const gmAddr = requireAddress(CONTRACTS.grantManager, "GrantManager");
+        const pmAddr = requireAddress(CONTRACTS.proposalManager, "ProposalManager");
+        const grantIds = (await readContract(gmAddr, "get_all_grant_ids", [])) as string[];
         const grantData = await Promise.all(
           grantIds.map(async (id) => {
-            const json = await readContract(CONTRACTS.grantManager, "get_grant", [id]);
+            const json = await readContract(gmAddr, "get_grant", [id]);
             return JSON.parse(json as string) as Grant;
           })
         );
         setGrants(grantData);
 
-        const count = (await readContract(CONTRACTS.proposalManager, "get_proposal_count", [])) as bigint;
+        const count = (await readContract(pmAddr, "get_proposal_count", [])) as bigint;
         const propIds = Array.from({ length: Number(count) }, (_, i) => `prop_${i}`);
         const propData = await Promise.all(
           propIds.map(async (id) => {
-            const json = await readContract(CONTRACTS.proposalManager, "get_proposal", [id]);
+            const json = await readContract(pmAddr, "get_proposal", [id]);
             if (!json || json === "") return null;
             return JSON.parse(json as string) as Proposal;
           })

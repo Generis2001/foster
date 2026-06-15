@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import AppLayout from "@/components/AppLayout";
 import { Button } from "@/components/ui/Button";
 import { useWallet } from "@/lib/WalletContext";
-import { CONTRACTS, readContract } from "@/lib/genlayer";
+import { CONTRACTS, readContract, requireAddress } from "@/lib/genlayer";
 import { useEvaluateProposal, useSubmitValidatorEvaluation } from "@/lib/hooks";
 import { Proposal, Evaluation } from "@/lib/types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -33,11 +33,12 @@ export default function ValidatorPage() {
         return;
       }
       try {
-        const count = (await readContract(CONTRACTS.proposalManager, "get_proposal_count", [])) as bigint;
+        const pmAddr = requireAddress(CONTRACTS.proposalManager, "ProposalManager");
+        const count = (await readContract(pmAddr, "get_proposal_count", [])) as bigint;
         const ids = Array.from({ length: Number(count) }, (_, i) => `prop_${i}`);
         const results = await Promise.all(
           ids.map(async (id) => {
-            const json = await readContract(CONTRACTS.proposalManager, "get_proposal", [id]);
+            const json = await readContract(pmAddr, "get_proposal", [id]);
             if (!json || json === "") return null;
             return JSON.parse(json as string) as Proposal;
           })
@@ -46,10 +47,11 @@ export default function ValidatorPage() {
         setProposals(valid);
 
         if (CONTRACTS.evaluationEngine) {
+          const eeAddr = requireAddress(CONTRACTS.evaluationEngine, "EvaluationEngine");
           const evalResults = await Promise.all(
             valid.map(async (p) => {
               try {
-                const json = await readContract(CONTRACTS.evaluationEngine, "get_evaluation_for_proposal", [p.id]);
+                const json = await readContract(eeAddr, "get_evaluation_for_proposal", [p.id]);
                 if (json && json !== "") return { id: p.id, eval: JSON.parse(json as string) as Evaluation };
               } catch { /**/ }
               return null;
@@ -78,7 +80,8 @@ export default function ValidatorPage() {
     let grantCriteria = "General merit, technical quality, team experience, and ecosystem impact.";
     if (CONTRACTS.grantManager) {
       try {
-        const grantJson = await readContract(CONTRACTS.grantManager, "get_grant", [proposal.grant_id]);
+        const gmAddr = requireAddress(CONTRACTS.grantManager, "GrantManager");
+        const grantJson = await readContract(gmAddr, "get_grant", [proposal.grant_id]);
         if (grantJson && grantJson !== "") {
           const grant = JSON.parse(grantJson as string);
           grantCriteria = `Focus areas: ${grant.focus_areas}. Eligibility: ${grant.eligibility}. Max grant: ${grant.max_grant_size} GEN.`;

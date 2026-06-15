@@ -7,7 +7,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useWallet } from "@/lib/WalletContext";
 import { useSubmitProposal } from "@/lib/hooks";
-import { CONTRACTS, readContract, STUDIONET_CHAIN } from "@/lib/genlayer";
+import { CONTRACTS, readContract, requireAddress, STUDIONET_CHAIN } from "@/lib/genlayer";
 import { Grant } from "@/lib/types";
 import {
   CheckCircle,
@@ -76,10 +76,11 @@ function SubmitProposalContent() {
       if (!CONTRACTS.grantManager) return;
       setGrantsLoading(true);
       try {
-        const ids = (await readContract(CONTRACTS.grantManager, "get_all_grant_ids", [])) as string[];
+        const gmAddr = requireAddress(CONTRACTS.grantManager, "GrantManager");
+        const ids = (await readContract(gmAddr, "get_all_grant_ids", [])) as string[];
         const results = await Promise.all(
           ids.map(async (id) => {
-            const json = await readContract(CONTRACTS.grantManager, "get_grant", [id]);
+            const json = await readContract(gmAddr, "get_grant", [id]);
             return JSON.parse(json as string) as Grant;
           })
         );
