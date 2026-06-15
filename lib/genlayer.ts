@@ -5,12 +5,21 @@ import { TransactionStatus } from "genlayer-js/types";
 
 export { TransactionStatus };
 
+// Validates a raw env var string is a proper 0x-prefixed 20-byte hex address.
+// Returns null for anything else (undefined, "", "undefined", wrong length, etc.)
+function toAddress(raw: string | undefined): `0x${string}` | null {
+  if (!raw || typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  if (!/^0x[0-9a-fA-F]{40}$/.test(trimmed)) return null;
+  return trimmed as `0x${string}`;
+}
+
 // Deployed contract addresses — set via environment variables after deployment
 export const CONTRACTS = {
-  grantManager: (process.env.NEXT_PUBLIC_GRANT_MANAGER_ADDRESS || "") as `0x${string}`,
-  proposalManager: (process.env.NEXT_PUBLIC_PROPOSAL_MANAGER_ADDRESS || "") as `0x${string}`,
-  evaluationEngine: (process.env.NEXT_PUBLIC_EVALUATION_ENGINE_ADDRESS || "") as `0x${string}`,
-  milestoneManager: (process.env.NEXT_PUBLIC_MILESTONE_MANAGER_ADDRESS || "") as `0x${string}`,
+  grantManager:     toAddress(process.env.NEXT_PUBLIC_GRANT_MANAGER_ADDRESS),
+  proposalManager:  toAddress(process.env.NEXT_PUBLIC_PROPOSAL_MANAGER_ADDRESS),
+  evaluationEngine: toAddress(process.env.NEXT_PUBLIC_EVALUATION_ENGINE_ADDRESS),
+  milestoneManager: toAddress(process.env.NEXT_PUBLIC_MILESTONE_MANAGER_ADDRESS),
 };
 
 export const STUDIONET_CHAIN = {
@@ -23,6 +32,16 @@ export const STUDIONET_CHAIN = {
 
 export function getReadClient() {
   return createClient({ chain: studionet });
+}
+
+function getWriteClient(account: string) {
+  return createClient({ chain: studionet, account: account as `0x${string}` });
+}
+
+// Asserts an address is non-null before use — throws a clean error if not
+export function requireAddress(addr: `0x${string}` | null, name = "Contract"): `0x${string}` {
+  if (!addr) throw new Error(`${name} address not configured. Check your .env.local settings.`);
+  return addr;
 }
 
 // Reads a view function from a contract
@@ -47,15 +66,18 @@ export async function writeContract(
     throw new Error("No wallet connected. Please install MetaMask.");
   }
 
-  const client = getReadClient();
-
   // Ensure we're on StudioNet
   await ensureStudioNet();
 
   const accounts = await window.ethereum.request({ method: "eth_accounts" }) as string[];
-  if (!accounts.length) {
-    throw new Error("No wallet connected.");
+  const account = accounts?.[0];
+  if (!account || !/^0x[0-9a-fA-F]{40}$/.test(account)) {
+    throw new Error("No valid wallet account found. Please connect MetaMask and try again.");
   }
+
+  // Create a write client with the account string — genlayer-js will route
+  // all eth_* calls through window.ethereum when account is a string (not a LocalAccount object)
+  const client = getWriteClient(account);
 
   const txHash = await client.writeContract({
     address,
@@ -63,8 +85,6 @@ export async function writeContract(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     args: args as any,
     value: value ?? 0n,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    account: accounts[0] as any,
   });
 
   return txHash as string;
