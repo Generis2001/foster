@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, DM_Sans } from "next/font/google";
 import "./globals.css";
 import { WalletProvider } from "@/lib/WalletContext";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Kindful-style: clean humanist sans for body, DM Sans for headings
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const dmSans = DM_Sans({
+  variable: "--font-dm-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -20,17 +23,10 @@ export const metadata: Metadata = {
   keywords: "GenLayer, grants, decentralized, AI, blockchain, funding",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
-    >
-      <body className="min-h-full flex flex-col bg-[#050508] text-white">
+    <html lang="en" className={`${inter.variable} ${dmSans.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-white text-gray-900">
         <WalletProvider>{children}</WalletProvider>
       </body>
     </html>

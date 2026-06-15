@@ -45,7 +45,6 @@ export default function ValidatorPage() {
         const valid = results.filter(Boolean) as Proposal[];
         setProposals(valid);
 
-        // Load existing evaluations
         if (CONTRACTS.evaluationEngine) {
           const evalResults = await Promise.all(
             valid.map(async (p) => {
@@ -76,7 +75,6 @@ export default function ValidatorPage() {
 
   async function triggerAIEvaluation(proposal: Proposal) {
     if (!CONTRACTS.evaluationEngine) return;
-    // Get grant info for criteria
     let grantCriteria = "General merit, technical quality, team experience, and ecosystem impact.";
     if (CONTRACTS.grantManager) {
       try {
@@ -99,8 +97,8 @@ export default function ValidatorPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Validator Hub</h1>
-            <p className="text-sm text-white/40 mt-1">
+            <h1 className="text-xl font-bold text-gray-900">Validator Hub</h1>
+            <p className="text-sm text-gray-400 mt-0.5">
               Trigger AI evaluation rounds and participate in consensus
             </p>
           </div>
@@ -111,34 +109,33 @@ export default function ValidatorPage() {
             </Button>
           )}
           {connected && (
-            <div className="flex items-center gap-2 text-xs text-white/40">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+            <div className="flex items-center gap-2 text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-lg px-3 py-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
               {address?.slice(0, 10)}...{address?.slice(-4)}
             </div>
           )}
         </div>
 
         {!CONTRACTS.evaluationEngine && (
-          <div className="flex items-center gap-3 p-4 glass rounded-xl border border-amber-500/20 text-amber-300 text-sm">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+          <div className="flex items-center gap-3 p-4 card border-l-4 border-l-amber-400 text-sm text-amber-700">
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 text-amber-500" />
             EvaluationEngine contract not configured. Set NEXT_PUBLIC_EVALUATION_ENGINE_ADDRESS in .env.local
           </div>
         )}
 
         {loading && (
-          <div className="flex items-center justify-center py-20 gap-3 text-white/40">
+          <div className="flex items-center justify-center py-20 gap-3 text-gray-400">
             <Loader2 className="w-5 h-5 animate-spin" />
             Loading proposals from chain...
           </div>
         )}
 
         {!loading && (
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-3 gap-5">
             {/* Proposal list */}
             <div className="col-span-1 space-y-4">
-              {/* Pending */}
               <div>
-                <div className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-3">
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
                   Pending Evaluation ({pendingProposals.length})
                 </div>
                 <div className="space-y-2">
@@ -146,29 +143,30 @@ export default function ValidatorPage() {
                     <button
                       key={p.id}
                       onClick={() => setSelected(p.id)}
-                      className={`w-full text-left p-3 rounded-lg border transition-all ${
+                      className={`w-full text-left p-3 rounded-xl border transition-all ${
                         selected === p.id
-                          ? "border-blue-500/50 bg-blue-500/10"
-                          : "border-white/10 bg-white/5 hover:border-white/20"
+                          ? "border-blue-300 bg-blue-50"
+                          : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
                       }`}
                     >
-                      <div className="text-sm font-medium text-white truncate mb-1">{p.title}</div>
+                      <div className="text-sm font-medium text-gray-900 truncate mb-1">{p.title}</div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-white/30">{parseInt(p.requested_amount).toLocaleString()} GEN</span>
-                        <ChevronRight className="w-3.5 h-3.5 text-white/30" />
+                        <span className="text-xs text-gray-400">{parseInt(p.requested_amount).toLocaleString()} GEN</span>
+                        <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
                       </div>
                     </button>
                   ))}
                   {pendingProposals.length === 0 && (
-                    <div className="text-xs text-white/30 text-center py-4">No pending proposals</div>
+                    <div className="text-xs text-gray-400 text-center py-6 bg-gray-50 rounded-xl border border-gray-100">
+                      No pending proposals
+                    </div>
                   )}
                 </div>
               </div>
 
-              {/* Evaluated */}
               {evaluatedProposals.length > 0 && (
                 <div>
-                  <div className="text-xs font-semibold text-white/40 uppercase tracking-wide mb-3">
+                  <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">
                     Evaluated ({evaluatedProposals.length})
                   </div>
                   <div className="space-y-2">
@@ -178,19 +176,19 @@ export default function ValidatorPage() {
                         <button
                           key={p.id}
                           onClick={() => setSelected(p.id)}
-                          className={`w-full text-left p-3 rounded-lg border transition-all ${
+                          className={`w-full text-left p-3 rounded-xl border transition-all ${
                             selected === p.id
-                              ? "border-blue-500/50 bg-blue-500/10"
-                              : "border-white/10 bg-white/5 hover:border-white/20"
+                              ? "border-blue-300 bg-blue-50"
+                              : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm"
                           }`}
                         >
-                          <div className="text-sm font-medium text-white truncate mb-1">{p.title}</div>
+                          <div className="text-sm font-medium text-gray-900 truncate mb-1">{p.title}</div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-white/50">{ev?.result?.score}/100</span>
-                            <span className={`text-xs px-1.5 py-0.5 rounded ${
-                              ev?.result?.recommendation === "APPROVE" ? "text-green-400 bg-green-500/10" :
-                              ev?.result?.recommendation === "REJECT" ? "text-red-400 bg-red-500/10" :
-                              "text-purple-400 bg-purple-500/10"
+                            <span className="text-xs font-mono text-gray-400">{ev?.result?.score}/100</span>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                              ev?.result?.recommendation === "APPROVE" ? "badge-green" :
+                              ev?.result?.recommendation === "REJECT" ? "badge-red" :
+                              "badge-purple"
                             }`}>{ev?.result?.recommendation}</span>
                           </div>
                         </button>
@@ -204,20 +202,22 @@ export default function ValidatorPage() {
             {/* Detail panel */}
             <div className="col-span-2">
               {!selectedProposal && (
-                <div className="glass rounded-xl p-10 text-center text-white/30">
-                  <Brain className="w-8 h-8 mx-auto mb-3 opacity-40" />
+                <div className="card p-10 text-center text-gray-400">
+                  <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                    <Brain className="w-6 h-6 text-gray-400" />
+                  </div>
                   Select a proposal to evaluate
                 </div>
               )}
 
               {selectedProposal && (
-                <div className="glass rounded-xl p-6 space-y-6">
+                <div className="card p-6 space-y-6">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h2 className="font-semibold text-white text-lg mb-1">{selectedProposal.title}</h2>
+                      <h2 className="font-semibold text-gray-900 text-lg mb-1">{selectedProposal.title}</h2>
                       <div className="flex items-center gap-3">
                         <StatusBadge status={selectedProposal.status} size="sm" />
-                        <span className="text-xs text-white/40">{parseInt(selectedProposal.requested_amount).toLocaleString()} GEN</span>
+                        <span className="text-xs text-gray-400">{parseInt(selectedProposal.requested_amount).toLocaleString()} GEN</span>
                       </div>
                     </div>
                     <Link href={`/proposals/${selectedProposal.id}`}>
@@ -225,29 +225,31 @@ export default function ValidatorPage() {
                     </Link>
                   </div>
 
-                  <p className="text-sm text-white/60">{selectedProposal.abstract}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed">{selectedProposal.abstract}</p>
 
                   {/* AI Evaluation Panel */}
                   {!selectedEval ? (
-                    <div className="border border-white/10 rounded-xl p-5 space-y-4">
+                    <div className="border border-gray-200 rounded-xl p-5 space-y-4 bg-gray-50">
                       <div className="flex items-center gap-2">
-                        <Brain className="w-5 h-5 text-blue-400" />
-                        <h3 className="font-medium text-white">Trigger AI Evaluation</h3>
+                        <div className="w-8 h-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                          <Brain className="w-4 h-4 text-violet-600" />
+                        </div>
+                        <h3 className="font-medium text-gray-900">Trigger AI Evaluation</h3>
                       </div>
-                      <p className="text-xs text-white/50">
+                      <p className="text-xs text-gray-500">
                         This will call the EvaluationEngine contract on GenLayer StudioNet,
                         triggering the leader validator to run LLM inference and other validators
                         to independently verify via optimistic democracy.
                       </p>
                       {aiError && (
-                        <div className="flex items-center gap-2 text-red-400 text-xs">
+                        <div className="flex items-center gap-2 text-red-500 text-xs">
                           <AlertTriangle className="w-3.5 h-3.5" /> {aiError}
                         </div>
                       )}
                       {aiTxHash && (
-                        <div className="text-xs text-white/40">
-                          Tx: <span className="font-mono text-blue-400">{aiTxHash.slice(0, 20)}...</span>
-                          <span className="ml-1 text-white/30">(consensus in progress...)</span>
+                        <div className="text-xs text-gray-400">
+                          Tx: <span className="font-mono text-blue-600">{aiTxHash.slice(0, 20)}...</span>
+                          <span className="ml-1 text-gray-400">(consensus in progress...)</span>
                         </div>
                       )}
                       <Button
@@ -263,46 +265,46 @@ export default function ValidatorPage() {
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-3 p-4 rounded-lg bg-white/5 border border-white/10">
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-gray-50 border border-gray-100">
                         {selectedEval.result.recommendation === "APPROVE" ? (
-                          <CheckCircle className="w-6 h-6 text-green-400" />
+                          <CheckCircle className="w-6 h-6 text-emerald-500" />
                         ) : selectedEval.result.recommendation === "REJECT" ? (
-                          <XCircle className="w-6 h-6 text-red-400" />
+                          <XCircle className="w-6 h-6 text-red-500" />
                         ) : (
-                          <RefreshCw className="w-6 h-6 text-purple-400" />
+                          <RefreshCw className="w-6 h-6 text-violet-500" />
                         )}
                         <div className="flex-1">
-                          <div className="font-semibold text-white">{selectedEval.result.recommendation}</div>
-                          <div className="text-xs text-white/40">AI Consensus Score: {selectedEval.result.score}/100</div>
+                          <div className="font-semibold text-gray-900">{selectedEval.result.recommendation}</div>
+                          <div className="text-xs text-gray-400">AI Consensus Score: {selectedEval.result.score}/100</div>
                         </div>
                       </div>
-                      <p className="text-sm text-white/60 italic">&ldquo;{selectedEval.result.reasoning}&rdquo;</p>
+                      <p className="text-sm text-gray-600 italic">&ldquo;{selectedEval.result.reasoning}&rdquo;</p>
                     </div>
                   )}
 
                   {/* Manual Validator Evaluation */}
                   {selectedEval && (
-                    <div className="border border-white/10 rounded-xl p-5 space-y-4">
-                      <h3 className="font-medium text-white text-sm">Submit Validator Assessment</h3>
-                      <p className="text-xs text-white/50">Add your independent evaluation to the consensus record.</p>
+                    <div className="border border-gray-200 rounded-xl p-5 space-y-4">
+                      <h3 className="font-medium text-gray-900 text-sm">Submit Validator Assessment</h3>
+                      <p className="text-xs text-gray-400">Add your independent evaluation to the consensus record.</p>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-xs text-white/40 block mb-1">Score (0-100)</label>
+                          <label className="text-xs text-gray-500 block mb-1.5 font-medium">Score (0-100)</label>
                           <input
                             type="number"
                             min="0"
                             max="100"
                             value={manualScore}
                             onChange={(e) => setManualScore(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                            className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-sm"
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-white/40 block mb-1">Recommendation</label>
+                          <label className="text-xs text-gray-500 block mb-1.5 font-medium">Recommendation</label>
                           <select
                             value={manualRec}
                             onChange={(e) => setManualRec(e.target.value)}
-                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                            className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-sm"
                           >
                             <option>APPROVE</option>
                             <option>REJECT</option>
@@ -315,9 +317,9 @@ export default function ValidatorPage() {
                         onChange={(e) => setManualReasoning(e.target.value)}
                         placeholder="Your reasoning and assessment..."
                         rows={3}
-                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none"
+                        className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none shadow-sm"
                       />
-                      {manError && <div className="text-xs text-red-400">{manError}</div>}
+                      {manError && <div className="text-xs text-red-500">{manError}</div>}
                       <Button
                         size="sm"
                         disabled={!connected || manLoading || !manualReasoning.trim()}

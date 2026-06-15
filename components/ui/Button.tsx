@@ -2,28 +2,27 @@
 import { ButtonHTMLAttributes, forwardRef } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "danger";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "outline";
   size?: "sm" | "md" | "lg";
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = "primary", size = "md", className = "", children, ...props }, ref) => {
     const base =
-      "inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500/50";
+      "inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-1";
 
     const variants = {
-      primary:
-        "bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white hover:opacity-90 shadow-lg shadow-blue-500/20",
-      secondary:
-        "bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-white/20",
-      ghost: "text-white/70 hover:text-white hover:bg-white/5",
-      danger: "bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20",
+      primary: "bg-blue-600 hover:bg-blue-700 text-white shadow-sm",
+      secondary: "bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 shadow-sm",
+      outline: "bg-transparent hover:bg-blue-50 text-blue-600 border border-blue-200",
+      ghost: "text-gray-500 hover:text-gray-900 hover:bg-gray-100",
+      danger: "bg-red-50 hover:bg-red-100 text-red-600 border border-red-200",
     };
 
     const sizes = {
-      sm: "px-3 py-1.5 text-sm",
+      sm: "px-3 py-1.5 text-xs",
       md: "px-4 py-2 text-sm",
-      lg: "px-6 py-3 text-base",
+      lg: "px-5 py-2.5 text-sm",
     };
 
     return (

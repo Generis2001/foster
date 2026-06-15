@@ -66,24 +66,24 @@ export default function CreateGrantPage() {
   if (done) {
     return (
       <AppLayout title="Create Grant Program">
-        <div className="max-w-lg mx-auto mt-20 text-center">
-          <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-green-400" />
+        <div className="max-w-lg mx-auto mt-16 text-center">
+          <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-8 h-8 text-emerald-500" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">Grant Program Created!</h2>
-          <p className="text-white/50 mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Grant Program Created!</h2>
+          <p className="text-gray-500 mb-6">
             Your grant program is now live on GenLayer StudioNet. Teams can submit proposals immediately.
           </p>
           {finalTxHash && (
-            <div className="glass rounded-xl p-4 text-left mb-6">
-              <div className="text-xs text-white/40 mb-1">Transaction Hash</div>
+            <div className="card p-4 text-left mb-6">
+              <div className="text-xs text-gray-400 mb-1.5">Transaction Hash</div>
               <div className="flex items-center gap-2">
-                <div className="font-mono text-xs text-blue-400 break-all flex-1">{finalTxHash}</div>
+                <div className="font-mono text-xs text-blue-600 break-all flex-1">{finalTxHash}</div>
                 <a
                   href={`${STUDIONET_CHAIN.explorer}/tx/${finalTxHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white/30 hover:text-white/60 flex-shrink-0"
+                  className="text-gray-400 hover:text-gray-600 flex-shrink-0"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
@@ -106,21 +106,21 @@ export default function CreateGrantPage() {
   return (
     <AppLayout title="Create Grant Program">
       <div className="max-w-2xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">Create Grant Program</h1>
-          <p className="text-sm text-white/40">
+        <div className="mb-7">
+          <h1 className="text-xl font-bold text-gray-900 mb-1.5">Create Grant Program</h1>
+          <p className="text-sm text-gray-500">
             Deploy a grant program on GenLayer StudioNet. GEN tokens are deposited into an on-chain escrow
             contract and released to approved projects via AI validator consensus.
           </p>
         </div>
 
         {!connected && (
-          <div className="mb-6 p-4 glass rounded-xl border border-amber-500/20 flex items-center justify-between">
+          <div className="mb-6 p-4 card border-l-4 border-l-amber-400 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Wallet className="w-5 h-5 text-amber-400" />
+              <Wallet className="w-5 h-5 text-amber-500" />
               <div>
-                <div className="text-sm font-medium text-white">Connect Wallet Required</div>
-                <div className="text-xs text-white/40">You need a wallet with GEN to create a grant</div>
+                <div className="text-sm font-medium text-gray-900">Connect Wallet Required</div>
+                <div className="text-xs text-gray-400">You need a wallet with GEN to create a grant</div>
               </div>
             </div>
             <Button size="sm" onClick={connect} disabled={connecting}>
@@ -130,7 +130,7 @@ export default function CreateGrantPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="glass rounded-xl p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="card p-8 space-y-6">
           <Input
             label="Grant Program Name"
             placeholder="GenLayer Ecosystem Fund 2026"
@@ -206,18 +206,18 @@ export default function CreateGrantPage() {
           />
 
           {error && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
               <AlertTriangle className="w-4 h-4 flex-shrink-0" />
               {error}
             </div>
           )}
 
-          <div className="glass rounded-lg p-4 border border-blue-500/20">
-            <div className="flex items-center gap-2 text-xs text-blue-400 font-medium mb-2">
+          <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+            <div className="flex items-center gap-2 text-xs text-blue-600 font-medium mb-1.5">
               <Coins className="w-3.5 h-3.5" />
               On-Chain Transaction
             </div>
-            <p className="text-xs text-white/50">
+            <p className="text-xs text-blue-500">
               This will send a transaction to GenLayer StudioNet (Chain ID: 61999) depositing
               {form.depositGEN ? ` ${form.depositGEN} GEN` : " your specified GEN"} into an escrow contract.
               Funds are released only when proposals are approved and milestones verified.

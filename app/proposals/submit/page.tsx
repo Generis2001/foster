@@ -124,32 +124,32 @@ function SubmitProposalContent() {
   if (submitted) {
     return (
       <AppLayout title="Submit Proposal">
-        <div className="max-w-lg mx-auto mt-20 text-center">
-          <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 text-green-400" />
+        <div className="max-w-lg mx-auto mt-16 text-center">
+          <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-8 h-8 text-emerald-500" />
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">Proposal Submitted On-Chain!</h2>
-          <p className="text-white/50 mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Proposal Submitted On-Chain!</h2>
+          <p className="text-gray-500 mb-6">
             Your proposal is stored on GenLayer StudioNet and queued for AI validator evaluation
             via optimistic democracy consensus.
           </p>
           {submitTxHash && (
-            <div className="glass rounded-xl p-4 text-left mb-6">
-              <div className="text-xs text-white/40 mb-1">Transaction Hash</div>
+            <div className="card p-4 text-left mb-6">
+              <div className="text-xs text-gray-400 mb-1.5">Transaction Hash</div>
               <div className="flex items-center gap-2">
-                <div className="font-mono text-xs text-blue-400 break-all flex-1">{submitTxHash}</div>
+                <div className="font-mono text-xs text-blue-600 break-all flex-1">{submitTxHash}</div>
                 <a
                   href={`${STUDIONET_CHAIN.explorer}/tx/${submitTxHash}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-white/30 hover:text-white/60"
+                  className="text-gray-400 hover:text-gray-600"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
           )}
-          <p className="text-sm text-white/40 mb-6">
+          <p className="text-sm text-gray-400 mb-6">
             Evaluation typically takes 24–48 hours depending on validator consensus rounds.
           </p>
           <div className="flex gap-3 justify-center">
@@ -174,40 +174,40 @@ function SubmitProposalContent() {
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
                     step > id
-                      ? "bg-green-500 text-white"
+                      ? "bg-emerald-500 text-white"
                       : step === id
-                      ? "bg-gradient-to-br from-blue-500 to-purple-600 text-white"
-                      : "bg-white/5 border border-white/10 text-white/30"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 border border-gray-200 text-gray-400"
                   }`}
                 >
                   {step > id ? <CheckCircle className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                 </div>
-                <span className={`text-xs ${step === id ? "text-white" : "text-white/30"}`}>{label}</span>
+                <span className={`text-xs font-medium ${step === id ? "text-gray-900" : "text-gray-400"}`}>{label}</span>
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`h-px w-16 mx-2 mb-4 transition-all ${step > id ? "bg-green-500/50" : "bg-white/10"}`} />
+                <div className={`h-px w-16 mx-2 mb-4 transition-all ${step > id ? "bg-emerald-300" : "bg-gray-200"}`} />
               )}
             </div>
           ))}
         </div>
 
-        <div className="glass rounded-xl p-8">
+        <div className="card p-8">
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Select Grant Program</h2>
-                <p className="text-sm text-white/40">Choose which active grant you&apos;re applying for</p>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Select Grant Program</h2>
+                <p className="text-sm text-gray-400">Choose which active grant you&apos;re applying for</p>
               </div>
 
               {grantsLoading && (
-                <div className="flex items-center justify-center py-10 gap-2 text-white/40">
+                <div className="flex items-center justify-center py-10 gap-2 text-gray-400">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Loading grants from chain...
                 </div>
               )}
 
               {!grantsLoading && grants.length === 0 && (
-                <div className="text-center py-10 text-white/40">
+                <div className="text-center py-10 text-gray-400">
                   <div className="mb-2">No active grant programs found on-chain.</div>
                   <Link href="/grants/create">
                     <Button size="sm" variant="secondary">Create a Grant Program</Button>
@@ -222,13 +222,13 @@ function SubmitProposalContent() {
                     onClick={() => u("grantId", g.id)}
                     className={`w-full text-left p-4 rounded-xl border transition-all ${
                       form.grantId === g.id
-                        ? "border-blue-500/50 bg-blue-500/10"
-                        : "border-white/10 bg-white/5 hover:border-white/20"
+                        ? "border-blue-300 bg-blue-50"
+                        : "border-gray-200 bg-white hover:border-gray-300"
                     }`}
                   >
-                    <div className="font-medium text-white mb-1">{g.name}</div>
-                    <div className="text-xs text-white/40 mb-2">{g.description.slice(0, 80)}...</div>
-                    <div className="flex gap-3 text-xs text-white/30">
+                    <div className="font-medium text-gray-900 mb-1">{g.name}</div>
+                    <div className="text-xs text-gray-400 mb-2">{g.description.slice(0, 80)}...</div>
+                    <div className="flex gap-3 text-xs text-gray-400">
                       <span>Max: {parseInt(g.max_grant_size).toLocaleString()} GEN</span>
                       <span>·</span>
                       <span>{parseInt(g.remaining_budget).toLocaleString()} GEN remaining</span>
@@ -242,12 +242,12 @@ function SubmitProposalContent() {
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Project Details</h2>
-                <p className="text-sm text-white/40">Describe your project clearly and concisely</p>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Project Details</h2>
+                <p className="text-sm text-gray-400">Describe your project clearly and concisely</p>
               </div>
               {selectedGrant && (
-                <div className="text-xs text-white/40 px-3 py-2 rounded-lg bg-white/5 border border-white/10">
-                  Applying to: <span className="text-white/70">{selectedGrant.name}</span> · Max {parseInt(selectedGrant.max_grant_size).toLocaleString()} GEN
+                <div className="text-xs text-gray-500 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200">
+                  Applying to: <span className="text-gray-700 font-medium">{selectedGrant.name}</span> · Max {parseInt(selectedGrant.max_grant_size).toLocaleString()} GEN
                 </div>
               )}
               <Input label="Project Title" placeholder="Decentralized AI Oracle Network" value={form.title} onChange={(e) => u("title", e.target.value)} required />
@@ -273,8 +273,8 @@ function SubmitProposalContent() {
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Team Information</h2>
-                <p className="text-sm text-white/40">Help validators assess your team&apos;s capability</p>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Team Information</h2>
+                <p className="text-sm text-gray-400">Help validators assess your team&apos;s capability</p>
               </div>
               <Textarea
                 label="Team Members & Background"
@@ -284,9 +284,9 @@ function SubmitProposalContent() {
                 rows={8}
                 required
               />
-              <div className="glass rounded-lg p-4 border border-blue-500/20">
-                <div className="text-xs font-medium text-blue-400 mb-2">How AI Validators Assess Teams</div>
-                <p className="text-xs text-white/50">
+              <div className="p-4 rounded-xl bg-blue-50 border border-blue-100">
+                <div className="text-xs font-medium text-blue-600 mb-1.5">How AI Validators Assess Teams</div>
+                <p className="text-xs text-blue-500">
                   GenLayer validators evaluate your team based on prior experience building on-chain,
                   track record of shipping, and depth of expertise in your technical domain. Be specific
                   and link to verifiable work.
@@ -298,8 +298,8 @@ function SubmitProposalContent() {
           {step === 4 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Roadmap & Milestones</h2>
-                <p className="text-sm text-white/40">Define your delivery plan with measurable outcomes</p>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Roadmap & Milestones</h2>
+                <p className="text-sm text-gray-400">Define your delivery plan with measurable outcomes</p>
               </div>
               <Textarea
                 label="Project Roadmap"
@@ -309,9 +309,9 @@ function SubmitProposalContent() {
                 rows={8}
                 required
               />
-              <div className="glass rounded-lg p-4 border border-purple-500/20">
-                <div className="text-xs font-medium text-purple-400 mb-2">Milestone-Based Funding</div>
-                <p className="text-xs text-white/50">
+              <div className="p-4 rounded-xl bg-violet-50 border border-violet-100">
+                <div className="text-xs font-medium text-violet-600 mb-1.5">Milestone-Based Funding</div>
+                <p className="text-xs text-violet-500">
                   After approval, you&apos;ll define on-chain milestones with specific success criteria.
                   GenLayer&apos;s AI validators fetch your GitHub releases, live demos, and reports to verify
                   completions. Funding is released per verified milestone — no rug pulls, no delays.
@@ -323,15 +323,15 @@ function SubmitProposalContent() {
           {step === 5 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-1">Review & Submit On-Chain</h2>
-                <p className="text-sm text-white/40">Your proposal will be stored on GenLayer StudioNet</p>
+                <h2 className="text-xl font-bold text-gray-900 mb-1">Review & Submit On-Chain</h2>
+                <p className="text-sm text-gray-400">Your proposal will be stored on GenLayer StudioNet</p>
               </div>
 
               {!connected && (
-                <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20 flex items-center justify-between">
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Wallet className="w-5 h-5 text-amber-400" />
-                    <div className="text-sm text-white/70">Connect your wallet to submit</div>
+                    <Wallet className="w-5 h-5 text-amber-500" />
+                    <div className="text-sm text-gray-700">Connect your wallet to submit</div>
                   </div>
                   <Button size="sm" onClick={connect} disabled={connecting}>
                     {connecting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Connect"}
@@ -339,7 +339,7 @@ function SubmitProposalContent() {
                 </div>
               )}
 
-              <div className="space-y-3">
+              <div className="divide-y divide-gray-100 rounded-xl border border-gray-200 overflow-hidden">
                 {[
                   { label: "Grant", value: grants.find((g) => g.id === form.grantId)?.name || form.grantId || "—" },
                   { label: "Project Title", value: form.title || "—" },
@@ -348,23 +348,23 @@ function SubmitProposalContent() {
                   { label: "Team", value: form.teamInfo ? `${form.teamInfo.slice(0, 80)}...` : "—" },
                   { label: "Roadmap", value: form.roadmap ? `${form.roadmap.slice(0, 80)}...` : "—" },
                 ].map(({ label, value }) => (
-                  <div key={label} className="flex gap-4">
-                    <div className="text-sm text-white/40 w-36 flex-shrink-0">{label}</div>
-                    <div className="text-sm text-white">{value}</div>
+                  <div key={label} className="flex gap-4 px-4 py-3">
+                    <div className="text-sm text-gray-400 w-36 flex-shrink-0">{label}</div>
+                    <div className="text-sm text-gray-900">{value}</div>
                   </div>
                 ))}
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                   {error}
                 </div>
               )}
 
-              <div className="glass rounded-lg p-4 border border-amber-500/20">
-                <div className="text-xs font-medium text-amber-400 mb-2">On-Chain Transaction</div>
-                <p className="text-xs text-white/50">
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
+                <div className="text-xs font-medium text-amber-600 mb-1.5">On-Chain Transaction</div>
+                <p className="text-xs text-amber-500">
                   Submitting sends a transaction to GenLayer StudioNet (Chain ID: 61999).
                   Proposal data is stored on-chain and immediately queued for AI validator evaluation
                   via GenLayer&apos;s optimistic democracy consensus mechanism.
@@ -401,7 +401,7 @@ function SubmitProposalContent() {
 
 export default function SubmitProposalPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#050508]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#f7f8fc]" />}>
       <SubmitProposalContent />
     </Suspense>
   );

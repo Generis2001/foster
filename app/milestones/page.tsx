@@ -45,7 +45,6 @@ export default function MilestonesPage() {
           if (!pJson || pJson === "") return null;
           const proposal = JSON.parse(pJson as string) as Proposal;
 
-          // Filter: only show proposals where user is proposer (or all if no wallet)
           if (address && proposal.proposer.toLowerCase() !== address.toLowerCase()) return null;
 
           let msIds: string[] = [];
@@ -81,8 +80,8 @@ export default function MilestonesPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-white">Milestone Verification</h1>
-            <p className="text-sm text-white/40 mt-1">
+            <h1 className="text-xl font-bold text-gray-900">Milestone Verification</h1>
+            <p className="text-sm text-gray-400 mt-0.5">
               Submit proof of completion and trigger AI verification on-chain
             </p>
           </div>
@@ -94,25 +93,27 @@ export default function MilestonesPage() {
           )}
         </div>
 
-        {(!CONTRACTS.milestoneManager) && (
-          <div className="flex items-center gap-3 p-4 glass rounded-xl border border-amber-500/20 text-amber-300 text-sm">
-            <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+        {!CONTRACTS.milestoneManager && (
+          <div className="flex items-center gap-3 p-4 card border-l-4 border-l-amber-400 text-amber-700 text-sm">
+            <AlertTriangle className="w-5 h-5 flex-shrink-0 text-amber-500" />
             MilestoneManager contract not configured. Set NEXT_PUBLIC_MILESTONE_MANAGER_ADDRESS in .env.local
           </div>
         )}
 
         {loading && (
-          <div className="flex items-center justify-center py-20 gap-3 text-white/40">
+          <div className="flex items-center justify-center py-20 gap-3 text-gray-400">
             <Loader2 className="w-5 h-5 animate-spin" />
             Loading milestones from chain...
           </div>
         )}
 
         {!loading && data.length === 0 && (
-          <div className="text-center py-20 text-white/30">
-            <CheckSquare className="w-8 h-8 mx-auto mb-3 opacity-30" />
-            <div className="mb-2">No milestones found</div>
-            <div className="text-sm">
+          <div className="text-center py-20">
+            <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+              <CheckSquare className="w-6 h-6 text-gray-400" />
+            </div>
+            <div className="text-gray-500 font-medium mb-1">No milestones found</div>
+            <div className="text-sm text-gray-400">
               {!connected
                 ? "Connect your wallet to view your milestones."
                 : "No milestones for your approved proposals yet."}
@@ -121,86 +122,83 @@ export default function MilestonesPage() {
         )}
 
         {data.map(({ proposal, milestones }) => (
-          <div key={proposal.id} className="glass rounded-xl p-6 space-y-4">
+          <div key={proposal.id} className="card p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-semibold text-white">{proposal.title}</h2>
-                <div className="text-xs text-white/40 mt-0.5">{proposal.id} · {parseInt(proposal.requested_amount).toLocaleString()} GEN</div>
+                <h2 className="font-semibold text-gray-900">{proposal.title}</h2>
+                <div className="text-xs text-gray-400 mt-0.5">{proposal.id} · {parseInt(proposal.requested_amount).toLocaleString()} GEN</div>
               </div>
               <StatusBadge status={proposal.status} size="sm" />
             </div>
 
             <div className="space-y-3">
               {milestones.map((ms) => (
-                <div key={ms.id} className="border border-white/10 rounded-xl p-4 space-y-3">
+                <div key={ms.id} className="border border-gray-200 rounded-xl p-5 space-y-3 bg-gray-50">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="font-medium text-white text-sm mb-1">{ms.title}</div>
-                      <div className="text-xs text-white/50 mb-2">{ms.description}</div>
-                      <div className="text-xs text-white/40">Success criteria: {ms.success_criteria}</div>
+                      <div className="font-medium text-gray-900 text-sm mb-1">{ms.title}</div>
+                      <div className="text-xs text-gray-500 mb-2">{ms.description}</div>
+                      <div className="text-xs text-gray-400">Success criteria: {ms.success_criteria}</div>
                     </div>
                     <div className="text-right ml-4">
-                      <div className="text-lg font-bold text-white">{parseInt(ms.amount).toLocaleString()}</div>
-                      <div className="text-xs text-white/40">GEN</div>
+                      <div className="text-lg font-bold text-gray-900">{parseInt(ms.amount).toLocaleString()}</div>
+                      <div className="text-xs text-gray-400">GEN</div>
                       <div className="mt-1"><StatusBadge status={ms.status} type="milestone" size="sm" /></div>
                     </div>
                   </div>
 
-                  {/* Proof submitted info */}
                   {ms.proof_url && (
-                    <div className="p-3 rounded-lg bg-white/5 border border-white/10 text-xs">
-                      <div className="text-white/40 mb-1">Proof submitted:</div>
-                      <a href={ms.proof_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline flex items-center gap-1">
+                    <div className="p-3 rounded-lg bg-white border border-gray-200 text-xs">
+                      <div className="text-gray-400 mb-1">Proof submitted:</div>
+                      <a href={ms.proof_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline flex items-center gap-1">
                         {ms.proof_url} <ExternalLink className="w-3 h-3" />
                       </a>
-                      {ms.proof_description && <div className="text-white/50 mt-1">{ms.proof_description}</div>}
+                      {ms.proof_description && <div className="text-gray-500 mt-1">{ms.proof_description}</div>}
                     </div>
                   )}
 
-                  {/* Verification result */}
                   {ms.verification_result && (
                     <div className={`p-3 rounded-lg border text-xs ${
                       ms.verification_result.verified
-                        ? "bg-green-500/10 border-green-500/20 text-green-300"
-                        : "bg-red-500/10 border-red-500/20 text-red-300"
+                        ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                        : "bg-red-50 border-red-200 text-red-600"
                     }`}>
                       <div className="flex items-center gap-2 font-medium mb-1">
                         {ms.verification_result.verified ? <CheckCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                         {ms.verification_result.verified ? "Verified" : "Rejected"} · {ms.verification_result.confidence}% confidence
                       </div>
-                      <div className="text-inherit opacity-80">{ms.verification_result.reasoning}</div>
+                      <div>{ms.verification_result.reasoning}</div>
                       {ms.verification_result.feedback && (
-                        <div className="mt-1 opacity-60">{ms.verification_result.feedback}</div>
+                        <div className="mt-1 opacity-70">{ms.verification_result.feedback}</div>
                       )}
                     </div>
                   )}
 
-                  {/* Actions */}
                   {ms.status === "PENDING" && connected && (
                     <>
                       {selectedMs?.id === ms.id && showProofForm ? (
-                        <div className="space-y-3 p-4 rounded-lg bg-white/5 border border-white/10">
+                        <div className="space-y-3 p-4 rounded-xl bg-white border border-gray-200">
                           <div>
-                            <label className="text-xs text-white/40 block mb-1">Proof URL</label>
+                            <label className="text-xs text-gray-500 block mb-1.5 font-medium">Proof URL</label>
                             <input
                               type="url"
                               value={proofUrl}
                               onChange={(e) => setProofUrl(e.target.value)}
                               placeholder="https://github.com/your-repo/releases/v1.0"
-                              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 placeholder-white/20"
+                              className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 placeholder-gray-400 shadow-sm"
                             />
                           </div>
                           <div>
-                            <label className="text-xs text-white/40 block mb-1">Description</label>
+                            <label className="text-xs text-gray-500 block mb-1.5 font-medium">Description</label>
                             <textarea
                               value={proofDesc}
                               onChange={(e) => setProofDesc(e.target.value)}
                               placeholder="Describe what was completed and where evidence can be found..."
                               rows={3}
-                              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 placeholder-white/20 resize-none"
+                              className="w-full px-3 py-2 rounded-lg bg-white border border-gray-200 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 placeholder-gray-400 resize-none shadow-sm"
                             />
                           </div>
-                          {proofError && <div className="text-xs text-red-400">{proofError}</div>}
+                          {proofError && <div className="text-xs text-red-500">{proofError}</div>}
                           <div className="flex gap-3">
                             <Button variant="ghost" size="sm" onClick={() => { setShowProofForm(false); setSelectedMs(null); }}>Cancel</Button>
                             <Button size="sm" disabled={proofLoading || !proofUrl} onClick={async () => {
@@ -224,11 +222,11 @@ export default function MilestonesPage() {
 
                   {ms.status === "PROOF_SUBMITTED" && (
                     <div className="space-y-2">
-                      <div className="text-xs text-white/40">
+                      <div className="text-xs text-gray-400">
                         Proof submitted. An authorized verifier can trigger AI verification.
                       </div>
-                      {verifyError && <div className="text-xs text-red-400">{verifyError}</div>}
-                      {verifyTxHash && <div className="text-xs text-white/40 font-mono">Tx: {verifyTxHash.slice(0, 20)}...</div>}
+                      {verifyError && <div className="text-xs text-red-500">{verifyError}</div>}
+                      {verifyTxHash && <div className="text-xs text-gray-400 font-mono">Tx: {verifyTxHash.slice(0, 20)}...</div>}
                       <Button size="sm" disabled={!connected || verifyLoading} onClick={async () => {
                         await verify(ms.id);
                         load();
@@ -240,15 +238,15 @@ export default function MilestonesPage() {
                   )}
 
                   {ms.status === "VERIFIED" && connected && (
-                    <div className="flex items-center gap-2 text-xs text-white/40">
-                      <CheckCircle className="w-3.5 h-3.5 text-green-400" />
+                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                      <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
                       Verified. Grant sponsor can release payout via{" "}
-                      <a href={STUDIONET_CHAIN.explorer} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">GenLayer Explorer</a>.
+                      <a href={STUDIONET_CHAIN.explorer} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">GenLayer Explorer</a>.
                     </div>
                   )}
 
                   {ms.status === "PAID" && (
-                    <div className="flex items-center gap-2 text-xs text-emerald-400">
+                    <div className="flex items-center gap-2 text-xs text-emerald-600 font-medium">
                       <CheckCircle className="w-3.5 h-3.5" />
                       Payout of {parseInt(ms.amount).toLocaleString()} GEN released
                     </div>
