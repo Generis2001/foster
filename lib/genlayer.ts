@@ -93,10 +93,30 @@ export async function writeContract(
 export async function waitForTx(hash: string) {
   const client = getReadClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return client.waitForTransactionReceipt({
+  const receipt = await client.waitForTransactionReceipt({
     hash: hash as any,
-    status: TransactionStatus.FINALIZED,
+    // ACCEPTED is the terminal state on StudioNet (FINALIZED may never arrive within timeout)
+    status: TransactionStatus.ACCEPTED,
+    retries: 40,   // 40 × 3 s = 2 minutes
+    interval: 3000,
   });
+
+  // Check if the intelligent contract execution actually succeeded
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const r = receipt as any;
+  const leaderReceipts: any[] = r?.consensus_data?.leader_receipt ?? [];
+  for (const lr of leaderReceipts) {
+    const status = lr?.result?.status ?? lr?.execution_result;
+    if (status === "rollback" || status === "error" || status === "contract_error") {
+      const reason = lr?.result?.payload ?? lr?.error ?? status;
+      throw new Error(`Contract execution failed: ${reason}`);
+    }
+  }
+  if (r?.txExecutionResultName === "FAILURE") {
+    throw new Error("Contract execution failed (FAILURE). Check contract logs.");
+  }
+
+  return receipt;
 }
 
 export async function ensureStudioNet() {
