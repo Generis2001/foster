@@ -88,7 +88,7 @@ export async function ensureStudioNet() {
   try {
     await window.ethereum.request({
       method: "wallet_switchEthereumChain",
-      params: [{ chainId: "0xF21F" }],
+      params: [{ chainId: "0xF22F" }],
     });
   } catch (err: unknown) {
     if ((err as { code: number }).code === 4902) {
@@ -96,7 +96,7 @@ export async function ensureStudioNet() {
         method: "wallet_addEthereumChain",
         params: [
           {
-            chainId: "0xF21F",
+            chainId: "0xF22F",
             chainName: "GenLayer StudioNet",
             rpcUrls: ["https://studio.genlayer.com/api"],
             nativeCurrency: { name: "GEN Token", symbol: "GEN", decimals: 18 },
