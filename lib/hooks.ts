@@ -1,6 +1,6 @@
 "use client";
 import { useState, useCallback } from "react";
-import { CONTRACTS, readContract, writeContract, waitForTx } from "@/lib/genlayer";
+import { CONTRACTS, readContract, writeContract, waitForTx, requireAddress } from "@/lib/genlayer";
 import { Grant, Proposal, Evaluation, Milestone } from "@/lib/types";
 
 // ─── Grant Manager ───────────────────────────────────────────────────────────
@@ -14,15 +14,18 @@ export function useGrants() {
     if (!CONTRACTS.grantManager) return;
     setLoading(true);
     setError(null);
+    const addr = requireAddress(CONTRACTS.grantManager, "GrantManager");
     try {
-      const ids = (await readContract(CONTRACTS.grantManager, "get_all_grant_ids", [])) as string[];
+      const count = (await readContract(addr, "get_grant_count", [])) as bigint;
+      const ids = Array.from({ length: Number(count) }, (_, i) => `grant_${i}`);
       const results = await Promise.all(
         ids.map(async (id) => {
-          const json = await readContract(CONTRACTS.grantManager, "get_grant", [id]);
+          const json = await readContract(addr, "get_grant", [id]);
+          if (!json || json === "") return null;
           return JSON.parse(json as string) as Grant;
         })
       );
-      setGrants(results);
+      setGrants(results.filter(Boolean) as Grant[]);
     } catch (err: unknown) {
       setError((err as Error).message);
     } finally {
@@ -38,7 +41,7 @@ export function useGrantBalance(grantId: string) {
 
   const fetch = useCallback(async () => {
     if (!CONTRACTS.grantManager || !grantId) return;
-    const bal = await readContract(CONTRACTS.grantManager, "get_grant_balance", [grantId]);
+    const bal = await readContract(requireAddress(CONTRACTS.grantManager, "GrantManager"), "get_grant_balance", [grantId]);
     setBalance((bal as bigint).toString());
   }, [grantId]);
 
@@ -60,12 +63,13 @@ export function useCreateGrant() {
     eligibility: string;
     depositGEN: bigint;
   }) => {
-    if (!CONTRACTS.grantManager) throw new Error("Contract not deployed yet.");
+    if (!CONTRACTS.grantManager) throw new Error("GrantManager contract address not configured.");
     setLoading(true);
     setError(null);
+    const gmAddr = requireAddress(CONTRACTS.grantManager, "GrantManager");
     try {
       const hash = await writeContract(
-        CONTRACTS.grantManager,
+        gmAddr,
         "create_grant_program",
         [
           params.name,
@@ -104,18 +108,18 @@ export function useProposals(grantId?: string) {
     if (!CONTRACTS.proposalManager) return;
     setLoading(true);
     setError(null);
+    const pmAddr = requireAddress(CONTRACTS.proposalManager, "ProposalManager");
     try {
       let ids: string[];
       if (grantId) {
-        ids = (await readContract(CONTRACTS.proposalManager, "get_proposals_for_grant", [grantId])) as string[];
+        ids = (await readContract(pmAddr, "get_proposals_for_grant", [grantId])) as string[];
       } else {
-        // Fetch count and get all
-        const count = (await readContract(CONTRACTS.proposalManager, "get_proposal_count", [])) as bigint;
+        const count = (await readContract(pmAddr, "get_proposal_count", [])) as bigint;
         ids = Array.from({ length: Number(count) }, (_, i) => `prop_${i}`);
       }
       const results = await Promise.all(
         ids.map(async (id) => {
-          const json = await readContract(CONTRACTS.proposalManager, "get_proposal", [id]);
+          const json = await readContract(pmAddr, "get_proposal", [id]);
           if (!json || json === "") return null;
           return JSON.parse(json as string) as Proposal;
         })
@@ -139,7 +143,7 @@ export function useProposal(proposalId: string) {
     if (!CONTRACTS.proposalManager || !proposalId) return;
     setLoading(true);
     try {
-      const json = await readContract(CONTRACTS.proposalManager, "get_proposal", [proposalId]);
+      const json = await readContract(requireAddress(CONTRACTS.proposalManager, "ProposalManager"), "get_proposal", [proposalId]);
       if (json && json !== "") setProposal(JSON.parse(json as string) as Proposal);
     } finally {
       setLoading(false);
@@ -166,12 +170,13 @@ export function useSubmitProposal() {
     githubUrl: string;
     websiteUrl: string;
   }) => {
-    if (!CONTRACTS.proposalManager) throw new Error("Contract not deployed yet.");
+    if (!CONTRACTS.proposalManager) throw new Error("ProposalManager contract address not configured.");
     setLoading(true);
     setError(null);
+    const pmAddr = requireAddress(CONTRACTS.proposalManager, "ProposalManager");
     try {
       const hash = await writeContract(
-        CONTRACTS.proposalManager,
+        pmAddr,
         "submit_proposal",
         [
           params.grantId,
@@ -214,12 +219,13 @@ export function useUpdateProposal() {
     roadmap: string;
     impactStatement: string;
   }) => {
-    if (!CONTRACTS.proposalManager) throw new Error("Contract not deployed yet.");
+    if (!CONTRACTS.proposalManager) throw new Error("ProposalManager contract address not configured.");
     setLoading(true);
     setError(null);
+    const pmAddr = requireAddress(CONTRACTS.proposalManager, "ProposalManager");
     try {
       const hash = await writeContract(
-        CONTRACTS.proposalManager,
+        pmAddr,
         "update_proposal",
         [
           params.proposalId,
@@ -250,12 +256,13 @@ export function useRequestAppeal() {
   const [error, setError] = useState<string | null>(null);
 
   const appeal = useCallback(async (proposalId: string, reason: string) => {
-    if (!CONTRACTS.proposalManager) throw new Error("Contract not deployed yet.");
+    if (!CONTRACTS.proposalManager) throw new Error("ProposalManager contract address not configured.");
     setLoading(true);
     setError(null);
+    const pmAddr = requireAddress(CONTRACTS.proposalManager, "ProposalManager");
     try {
       const hash = await writeContract(
-        CONTRACTS.proposalManager,
+        pmAddr,
         "request_appeal",
         [proposalId, reason]
       );
@@ -284,7 +291,7 @@ export function useEvaluation(proposalId: string) {
     setLoading(true);
     try {
       const json = await readContract(
-        CONTRACTS.evaluationEngine,
+        requireAddress(CONTRACTS.evaluationEngine, "EvaluationEngine"),
         "get_evaluation_for_proposal",
         [proposalId]
       );
@@ -307,12 +314,13 @@ export function useEvaluateProposal() {
     proposalJson: string;
     grantCriteria: string;
   }) => {
-    if (!CONTRACTS.evaluationEngine) throw new Error("Contract not deployed yet.");
+    if (!CONTRACTS.evaluationEngine) throw new Error("EvaluationEngine contract address not configured.");
     setLoading(true);
     setError(null);
+    const eeAddr = requireAddress(CONTRACTS.evaluationEngine, "EvaluationEngine");
     try {
       const hash = await writeContract(
-        CONTRACTS.evaluationEngine,
+        eeAddr,
         "evaluate_proposal",
         [params.proposalId, params.proposalJson, params.grantCriteria]
       );
@@ -341,12 +349,13 @@ export function useSubmitValidatorEvaluation() {
     recommendation: string;
     reasoning: string;
   }) => {
-    if (!CONTRACTS.evaluationEngine) throw new Error("Contract not deployed yet.");
+    if (!CONTRACTS.evaluationEngine) throw new Error("EvaluationEngine contract address not configured.");
     setLoading(true);
     setError(null);
+    const eeAddr = requireAddress(CONTRACTS.evaluationEngine, "EvaluationEngine");
     try {
       const hash = await writeContract(
-        CONTRACTS.evaluationEngine,
+        eeAddr,
         "submit_validator_evaluation",
         [params.proposalId, params.score, params.recommendation, params.reasoning]
       );
@@ -373,21 +382,21 @@ export function useMilestones(proposalId: string) {
   const fetch = useCallback(async () => {
     if (!CONTRACTS.milestoneManager || !proposalId) return;
     setLoading(true);
+    const mmAddr = requireAddress(CONTRACTS.milestoneManager, "MilestoneManager");
     try {
       let ids: string[] = [];
       try {
         ids = (await readContract(
-          CONTRACTS.milestoneManager,
+          mmAddr,
           "get_milestones_for_proposal",
           [proposalId]
         )) as string[];
       } catch {
-        // proposal has no milestones yet
         ids = [];
       }
       const results = await Promise.all(
         ids.map(async (id) => {
-          const json = await readContract(CONTRACTS.milestoneManager, "get_milestone", [id]);
+          const json = await readContract(mmAddr, "get_milestone", [id]);
           if (!json || json === "") return null;
           return JSON.parse(json as string) as Milestone;
         })
@@ -406,12 +415,13 @@ export function useSubmitMilestoneProof() {
   const [error, setError] = useState<string | null>(null);
 
   const submit = useCallback(async (milestoneId: string, proofUrl: string, proofDescription: string) => {
-    if (!CONTRACTS.milestoneManager) throw new Error("Contract not deployed yet.");
+    if (!CONTRACTS.milestoneManager) throw new Error("MilestoneManager contract address not configured.");
     setLoading(true);
     setError(null);
+    const mmAddr = requireAddress(CONTRACTS.milestoneManager, "MilestoneManager");
     try {
       const hash = await writeContract(
-        CONTRACTS.milestoneManager,
+        mmAddr,
         "submit_milestone_proof",
         [milestoneId, proofUrl, proofDescription]
       );
@@ -435,12 +445,13 @@ export function useVerifyMilestone() {
   const [txHash, setTxHash] = useState<string | null>(null);
 
   const verify = useCallback(async (milestoneId: string) => {
-    if (!CONTRACTS.milestoneManager) throw new Error("Contract not deployed yet.");
+    if (!CONTRACTS.milestoneManager) throw new Error("MilestoneManager contract address not configured.");
     setLoading(true);
     setError(null);
+    const mmAddr = requireAddress(CONTRACTS.milestoneManager, "MilestoneManager");
     try {
       const hash = await writeContract(
-        CONTRACTS.milestoneManager,
+        mmAddr,
         "verify_milestone",
         [milestoneId]
       );

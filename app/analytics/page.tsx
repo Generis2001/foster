@@ -19,13 +19,15 @@ export default function AnalyticsPage() {
       try {
         const gmAddr = requireAddress(CONTRACTS.grantManager, "GrantManager");
         const pmAddr = requireAddress(CONTRACTS.proposalManager, "ProposalManager");
-        const grantIds = (await readContract(gmAddr, "get_all_grant_ids", [])) as string[];
-        const grantData = await Promise.all(
+        const grantCount = (await readContract(gmAddr, "get_grant_count", [])) as bigint;
+        const grantIds = Array.from({ length: Number(grantCount) }, (_, i) => `grant_${i}`);
+        const grantData = (await Promise.all(
           grantIds.map(async (id) => {
             const json = await readContract(gmAddr, "get_grant", [id]);
+            if (!json || json === "") return null;
             return JSON.parse(json as string) as Grant;
           })
-        );
+        )).filter(Boolean) as Grant[];
         setGrants(grantData);
 
         const count = (await readContract(pmAddr, "get_proposal_count", [])) as bigint;

@@ -4,7 +4,7 @@ import AppLayout from "@/components/AppLayout";
 import { Grant } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
-import { CONTRACTS, readContract } from "@/lib/genlayer";
+import { CONTRACTS, readContract, requireAddress } from "@/lib/genlayer";
 import {
   Search,
   Filter,
@@ -118,15 +118,18 @@ export default function GrantsPage() {
         setLoading(false);
         return;
       }
+      const gmAddr = requireAddress(CONTRACTS.grantManager, "GrantManager");
       try {
-        const ids = (await readContract(CONTRACTS.grantManager, "get_all_grant_ids", [])) as string[];
+        const count = (await readContract(gmAddr, "get_grant_count", [])) as bigint;
+        const ids = Array.from({ length: Number(count) }, (_, i) => `grant_${i}`);
         const results = await Promise.all(
           ids.map(async (id) => {
-            const json = await readContract(CONTRACTS.grantManager, "get_grant", [id]);
+            const json = await readContract(gmAddr, "get_grant", [id]);
+            if (!json || json === "") return null;
             return JSON.parse(json as string) as Grant;
           })
         );
-        setGrants(results);
+        setGrants(results.filter(Boolean) as Grant[]);
       } catch (err: unknown) {
         setError((err as Error).message);
       } finally {

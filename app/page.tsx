@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Shield, Brain, TrendingUp, Globe, Lock, Coins, CheckCircle } from "lucide-react";
 import { CoBrandLockup } from "@/components/CoBrandLockup";
 import { FosterLogo } from "@/components/FosterLogo";
+import { CONTRACTS, readContract, requireAddress } from "@/lib/genlayer";
+import { Grant, Proposal } from "@/lib/types";
 
 function AnimatedCounter({ target, duration = 2000, suffix = "", prefix = "" }: { target: number; duration?: number; suffix?: string; prefix?: string }) {
   const [count, setCount] = useState(0);
@@ -27,12 +29,45 @@ function AnimatedCounter({ target, duration = 2000, suffix = "", prefix = "" }: 
   return <span ref={ref}>{prefix}{count.toLocaleString()}{suffix}</span>;
 }
 
-const stats = [
-  { label: "GEN Available", value: 2400000, suffix: "+" },
-  { label: "Proposals Evaluated", value: 847, suffix: "" },
-  { label: "Projects Funded", value: 134, suffix: "" },
-  { label: "Consensus Accuracy", value: 94, suffix: "%" },
-];
+interface ChainStats {
+  genAvailable: number;
+  proposalCount: number;
+  fundedCount: number;
+  activeGrants: number;
+}
+
+async function fetchChainStats(): Promise<ChainStats> {
+  let genAvailable = 0;
+  let proposalCount = 0;
+  let fundedCount = 0;
+  let activeGrants = 0;
+
+  try {
+    if (CONTRACTS.grantManager) {
+      const gmAddr = requireAddress(CONTRACTS.grantManager, "GrantManager");
+      const count = (await readContract(gmAddr, "get_grant_count", [])) as bigint;
+      const ids = Array.from({ length: Number(count) }, (_, i) => `grant_${i}`);
+      const grants = (await Promise.all(ids.map(async (id) => {
+        const json = await readContract(gmAddr, "get_grant", [id]);
+        if (!json || json === "") return null;
+        return JSON.parse(json as string) as Grant;
+      }))).filter(Boolean) as Grant[];
+      genAvailable = grants.reduce((s, g) => s + parseInt(g.remaining_budget), 0);
+      fundedCount = grants.reduce((s, g) => s + g.funded_count, 0);
+      activeGrants = grants.filter(g => g.status === "ACTIVE").length;
+    }
+  } catch { /* ignore */ }
+
+  try {
+    if (CONTRACTS.proposalManager) {
+      const pmAddr = requireAddress(CONTRACTS.proposalManager, "ProposalManager");
+      const c = (await readContract(pmAddr, "get_proposal_count", [])) as bigint;
+      proposalCount = Number(c);
+    }
+  } catch { /* ignore */ }
+
+  return { genAvailable, proposalCount, fundedCount, activeGrants };
+}
 
 const features = [
   {
@@ -90,6 +125,26 @@ const trustItems = [
 ];
 
 export default function HomePage() {
+  const [chainStats, setChainStats] = useState<ChainStats | null>(null);
+
+  useEffect(() => {
+    fetchChainStats().then(setChainStats).catch(() => {});
+  }, []);
+
+  const stats = chainStats
+    ? [
+        { label: "GEN Available", value: Math.round(chainStats.genAvailable / 1e18), suffix: "" },
+        { label: "Total Proposals", value: chainStats.proposalCount, suffix: "" },
+        { label: "Projects Funded", value: chainStats.fundedCount, suffix: "" },
+        { label: "Active Grants", value: chainStats.activeGrants, suffix: "" },
+      ]
+    : [
+        { label: "GEN Available", value: 0, suffix: "" },
+        { label: "Total Proposals", value: 0, suffix: "" },
+        { label: "Projects Funded", value: 0, suffix: "" },
+        { label: "Active Grants", value: 0, suffix: "" },
+      ];
+
   return (
     <div className="min-h-screen bg-white text-gray-900">
       {/* Nav */}
@@ -167,7 +222,11 @@ export default function HomePage() {
           {stats.map(({ label, value, suffix }) => (
             <div key={label} className="text-center px-4">
               <div className="text-[32px] font-bold text-[#0d1117] mb-1 tracking-[-0.04em]">
-                <AnimatedCounter target={value} suffix={suffix} />
+                {!chainStats ? (
+                  <span className="text-gray-300">—</span>
+                ) : (
+                  <AnimatedCounter target={value} suffix={suffix} />
+                )}
               </div>
               <div className="text-sm text-gray-500 font-medium">{label}</div>
             </div>

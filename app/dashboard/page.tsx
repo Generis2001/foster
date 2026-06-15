@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import AppLayout from "@/components/AppLayout";
-import { CONTRACTS, readContract } from "@/lib/genlayer";
+import { CONTRACTS, readContract, requireAddress } from "@/lib/genlayer";
 import { Grant, Proposal } from "@/lib/types";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { Button } from "@/components/ui/Button";
@@ -23,15 +23,22 @@ export default function DashboardPage() {
   useEffect(() => {
     async function load() {
       if (!CONTRACTS.grantManager || !CONTRACTS.proposalManager) { setLoading(false); return; }
+      const gmAddr = requireAddress(CONTRACTS.grantManager, "GrantManager");
+      const pmAddr = requireAddress(CONTRACTS.proposalManager, "ProposalManager");
       try {
-        const grantIds = (await readContract(CONTRACTS.grantManager, "get_all_grant_ids", [])) as string[];
-        const grantData = await Promise.all(grantIds.map(async (id) => JSON.parse((await readContract(CONTRACTS.grantManager, "get_grant", [id])) as string) as Grant));
+        const grantCount = (await readContract(gmAddr, "get_grant_count", [])) as bigint;
+        const grantIds = Array.from({ length: Number(grantCount) }, (_, i) => `grant_${i}`);
+        const grantData = (await Promise.all(grantIds.map(async (id) => {
+          const json = await readContract(gmAddr, "get_grant", [id]);
+          if (!json || json === "") return null;
+          return JSON.parse(json as string) as Grant;
+        }))).filter(Boolean) as Grant[];
         setGrants(grantData);
 
-        const count = (await readContract(CONTRACTS.proposalManager, "get_proposal_count", [])) as bigint;
+        const count = (await readContract(pmAddr, "get_proposal_count", [])) as bigint;
         const propIds = Array.from({ length: Math.min(Number(count), 20) }, (_, i) => `prop_${i}`);
         const propData = await Promise.all(propIds.map(async (id) => {
-          const json = await readContract(CONTRACTS.proposalManager, "get_proposal", [id]);
+          const json = await readContract(pmAddr, "get_proposal", [id]);
           if (!json || json === "") return null;
           return JSON.parse(json as string) as Proposal;
         }));

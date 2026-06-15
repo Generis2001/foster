@@ -77,14 +77,16 @@ function SubmitProposalContent() {
       setGrantsLoading(true);
       try {
         const gmAddr = requireAddress(CONTRACTS.grantManager, "GrantManager");
-        const ids = (await readContract(gmAddr, "get_all_grant_ids", [])) as string[];
+        const count = (await readContract(gmAddr, "get_grant_count", [])) as bigint;
+        const ids = Array.from({ length: Number(count) }, (_, i) => `grant_${i}`);
         const results = await Promise.all(
           ids.map(async (id) => {
             const json = await readContract(gmAddr, "get_grant", [id]);
+            if (!json || json === "") return null;
             return JSON.parse(json as string) as Grant;
           })
         );
-        setGrants(results.filter((g) => g.status === "ACTIVE"));
+        setGrants((results.filter(Boolean) as Grant[]).filter((g) => g.status === "ACTIVE"));
       } catch {
         // ignore
       } finally {
