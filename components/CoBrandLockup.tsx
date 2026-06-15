@@ -3,30 +3,33 @@ import { FosterLogo } from "./FosterLogo";
 
 export function CoBrandLockup({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
   const config = {
-    sm: { logoH: 28, divider: "text-gray-300 text-lg mx-1.5", gl: "text-sm", foster: "text-sm" },
-    md: { logoH: 36, divider: "text-gray-300 text-xl mx-2", gl: "text-base", foster: "text-base" },
-    lg: { logoH: 44, divider: "text-gray-300 text-2xl mx-2.5", gl: "text-lg", foster: "text-lg" },
+    sm: { logoH: 26, gap: "gap-1.5", gl: "text-[13px]", plus: "text-[15px] mx-1", foster: "text-[13px] ml-1" },
+    md: { logoH: 32, gap: "gap-2",   gl: "text-[15px]", plus: "text-[17px] mx-1.5", foster: "text-[15px] ml-1.5" },
+    lg: { logoH: 40, gap: "gap-2.5", gl: "text-[18px]", plus: "text-[20px] mx-2",   foster: "text-[18px] ml-2" },
   }[size];
 
   return (
-    <div className="flex items-center gap-0">
-      {/* GenLayer wordmark — Recoleta style: warm, humanist serif */}
+    <div className={`flex items-center ${config.gap}`}>
+      {/* GenLayer — Recoleta: warm humanist serif */}
       <span
-        className={`wordmark-genlayer ${config.gl} text-gray-900`}
+        className={`wordmark-genlayer ${config.gl} text-[#0E2D6B]`}
         style={{ lineHeight: 1 }}
       >
         GenLayer
       </span>
 
-      {/* Divider */}
-      <span className={config.divider} style={{ lineHeight: 1, fontWeight: 300 }}>+</span>
+      <span
+        className={`${config.plus} text-gray-300 font-light`}
+        style={{ lineHeight: 1 }}
+      >
+        +
+      </span>
 
-      {/* Foster logo mark (just the icon, no text) */}
       <FosterLogo height={config.logoH} />
 
-      {/* Foster wordmark — Nunito style: rounded, modern sans */}
+      {/* Foster — Nunito: rounded modern sans */}
       <span
-        className={`wordmark-foster ${config.foster} text-gray-900 ml-1.5`}
+        className={`wordmark-foster ${config.foster} text-[#0E2D6B]`}
         style={{ lineHeight: 1 }}
       >
         Foster

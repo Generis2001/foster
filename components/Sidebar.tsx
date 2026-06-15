@@ -19,26 +19,26 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 h-screen w-56 flex flex-col border-r border-gray-100 bg-white z-40">
       {/* Logo */}
-      <div className="flex items-center gap-2 px-4 h-14 border-b border-gray-100">
-        <FosterLogo height={30} />
-        <span className="wordmark-foster text-sm text-gray-900">Foster</span>
-      </div>
+      <Link href="/" className="flex items-center gap-2.5 px-4 h-14 border-b border-gray-100 hover:opacity-80 transition-opacity">
+        <FosterLogo height={28} />
+        <span className="wordmark-foster text-[14px] text-[#0E2D6B]">Foster</span>
+      </Link>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-2.5 py-4 space-y-0.5 overflow-y-auto">
         {navItems.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-100 ${
+              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-semibold tracking-[-0.01em] transition-all duration-100 ${
                 active
-                  ? "bg-blue-50 text-blue-700"
+                  ? "bg-[#0E2D6B]/8 text-[#0E2D6B]"
                   : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
               }`}
             >
-              <Icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-blue-600" : ""}`} />
+              <Icon className={`w-4 h-4 flex-shrink-0 ${active ? "text-[#0E2D6B]" : "text-gray-400"}`} />
               {label}
             </Link>
           );
@@ -46,11 +46,11 @@ export function Sidebar() {
       </nav>
 
       {/* Create grant CTA */}
-      <div className="px-3 pb-5">
+      <div className="px-2.5 pb-5">
         <Link href="/grants/create">
-          <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 transition-colors cursor-pointer">
-            <Plus className="w-4 h-4 text-white" />
-            <span className="text-sm font-semibold text-white">Create Grant</span>
+          <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-[#0E2D6B] hover:bg-[#163a87] active:bg-[#0a2057] transition-colors cursor-pointer shadow-[0_1px_3px_rgba(14,45,107,0.3)]">
+            <Plus className="w-3.5 h-3.5 text-white" />
+            <span className="text-[13px] font-semibold text-white tracking-[-0.01em]">Create Grant</span>
           </div>
         </Link>
       </div>
