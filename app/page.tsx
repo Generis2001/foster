@@ -1,7 +1,9 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, Zap, Shield, Brain, TrendingUp, Globe, Lock, Coins, CheckCircle } from "lucide-react";
+import { ArrowRight, Shield, Brain, TrendingUp, Globe, Lock, Coins, CheckCircle } from "lucide-react";
+import { CoBrandLockup } from "@/components/CoBrandLockup";
+import { FosterLogo } from "@/components/FosterLogo";
 
 function AnimatedCounter({ target, duration = 2000, suffix = "", prefix = "" }: { target: number; duration?: number; suffix?: string; prefix?: string }) {
   const [count, setCount] = useState(0);
@@ -95,12 +97,7 @@ export default function HomePage() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-lg font-bold text-gray-900">Foster</span>
-          </div>
+          <CoBrandLockup size="md" />
 
           <div className="hidden md:flex items-center gap-7">
             {["Grants", "How It Works", "Analytics"].map((item) => (
@@ -270,10 +267,8 @@ export default function HomePage() {
       <footer className="border-t border-gray-100 bg-white">
         <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-blue-600 flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="font-semibold text-gray-700">Foster</span>
+            <FosterLogo height={24} />
+            <span className="wordmark-foster text-sm text-gray-700">Foster</span>
           </div>
           <div className="flex items-center gap-6 text-sm text-gray-400">
             {["Grants", "Dashboard", "Analytics"].map((l) => (

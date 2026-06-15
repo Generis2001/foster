@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Coins, FileText, Shield, BarChart3, CheckSquare, Zap, Plus } from "lucide-react";
+import { LayoutDashboard, Coins, FileText, Shield, BarChart3, CheckSquare, Plus } from "lucide-react";
+import { FosterLogo } from "@/components/FosterLogo";
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -18,11 +19,9 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 h-screen w-56 flex flex-col border-r border-gray-100 bg-white z-40">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 h-14 border-b border-gray-100">
-        <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-          <Zap className="w-3.5 h-3.5 text-white" />
-        </div>
-        <span className="text-base font-bold text-gray-900">Foster</span>
+      <div className="flex items-center gap-2 px-4 h-14 border-b border-gray-100">
+        <FosterLogo height={30} />
+        <span className="wordmark-foster text-sm text-gray-900">Foster</span>
       </div>
 
       {/* Nav */}
