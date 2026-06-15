@@ -51,7 +51,7 @@ class ProposalManager(gl.Contract):
         website_url: str,
     ) -> str:
         proposal_id = f"prop_{self.proposal_count}"
-        proposer = gl.message.sender_account
+        proposer = gl.message.sender_address
 
         proposal_data = {
             "id": proposal_id,
@@ -101,7 +101,7 @@ class ProposalManager(gl.Contract):
         assert proposal_json != "", "Proposal not found"
 
         proposal_data = json.loads(proposal_json)
-        assert proposal_data["proposer"] == gl.message.sender_account, "Not proposer"
+        assert proposal_data["proposer"] == gl.message.sender_address, "Not proposer"
         assert proposal_data["status"] == "PENDING", "Cannot update non-pending proposal"
 
         proposal_data["title"] = title
@@ -128,7 +128,7 @@ class ProposalManager(gl.Contract):
         assert proposal_json != "", "Proposal not found"
 
         proposal_data = json.loads(proposal_json)
-        assert proposal_data["proposer"] == gl.message.sender_account, "Not proposer"
+        assert proposal_data["proposer"] == gl.message.sender_address, "Not proposer"
         assert proposal_data["status"] in ["REJECTED", "REVISION_REQUESTED"], "Cannot appeal"
 
         proposal_data["status"] = "APPEALED"

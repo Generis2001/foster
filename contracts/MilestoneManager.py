@@ -74,7 +74,7 @@ class MilestoneManager(gl.Contract):
         milestone_data["proof_url"] = proof_url
         milestone_data["proof_description"] = proof_description
         milestone_data["status"] = "PROOF_SUBMITTED"
-        milestone_data["submitter"] = gl.message.sender_account
+        milestone_data["submitter"] = gl.message.sender_address
 
         self.milestones[milestone_id] = json.dumps(milestone_data)
 

@@ -101,7 +101,7 @@ Return ONLY valid JSON, no markdown or explanation."""
             "id": eval_id,
             "proposal_id": proposal_id,
             "result": result,
-            "evaluator": gl.message.sender_account,
+            "evaluator": gl.message.sender_address,
             "status": "COMPLETE",
         }
 
@@ -127,7 +127,7 @@ Return ONLY valid JSON, no markdown or explanation."""
         validator_evals = eval_data.get("validator_evaluations", [])
 
         validator_eval = {
-            "validator": gl.message.sender_account,
+            "validator": gl.message.sender_address,
             "score": int(score),
             "recommendation": recommendation,
             "reasoning": reasoning,

@@ -44,7 +44,7 @@ class GrantManager(gl.Contract):
         eligibility: str,
     ) -> str:
         grant_id = f"grant_{self.grant_count}"
-        sponsor = gl.message.sender_account
+        sponsor = gl.message.sender_address
 
         grant_data = {
             "id": grant_id,
@@ -86,7 +86,7 @@ class GrantManager(gl.Contract):
     def update_grant_status(self, grant_id: str, status: str) -> None:
         grant_json = self.grants.get(grant_id, "")
         assert grant_json != "", "Grant not found"
-        assert self.grant_sponsors.get(grant_id, "") == gl.message.sender_account, "Not sponsor"
+        assert self.grant_sponsors.get(grant_id, "") == gl.message.sender_address, "Not sponsor"
 
         grant_data = json.loads(grant_json)
         grant_data["status"] = status
