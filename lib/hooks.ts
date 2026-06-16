@@ -2,6 +2,7 @@
 import { useState, useCallback } from "react";
 import { CONTRACTS, readContract, writeContract, waitForTx, requireAddress } from "@/lib/genlayer";
 import { Grant, Proposal, Evaluation, Milestone } from "@/lib/types";
+import { useNotifications } from "@/lib/NotificationContext";
 
 // ─── Grant Manager ───────────────────────────────────────────────────────────
 
@@ -52,6 +53,7 @@ export function useCreateGrant() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const { add: addNotif } = useNotifications();
 
   const createGrant = useCallback(async (params: {
     name: string;
@@ -84,6 +86,11 @@ export function useCreateGrant() {
       );
       setTxHash(hash);
       await waitForTx(hash);
+      addNotif(
+        "grant_created",
+        "Grant Created",
+        `"${params.name}" is now live on GenLayer StudioNet.`
+      );
       return hash;
     } catch (err: unknown) {
       const msg = (err as Error).message;
@@ -92,7 +99,7 @@ export function useCreateGrant() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [addNotif]);
 
   return { createGrant, loading, error, txHash };
 }
@@ -157,6 +164,7 @@ export function useSubmitProposal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const { add: addNotif } = useNotifications();
 
   const submit = useCallback(async (params: {
     grantId: string;
@@ -193,6 +201,11 @@ export function useSubmitProposal() {
       );
       setTxHash(hash);
       await waitForTx(hash);
+      addNotif(
+        "proposal_submitted",
+        "Proposal Submitted",
+        `"${params.title}" has been submitted on-chain successfully.`
+      );
       return hash;
     } catch (err: unknown) {
       const msg = (err as Error).message;
@@ -201,7 +214,7 @@ export function useSubmitProposal() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [addNotif]);
 
   return { submit, loading, error, txHash };
 }
@@ -308,6 +321,7 @@ export function useEvaluateProposal() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const { add: addNotif } = useNotifications();
 
   const evaluate = useCallback(async (params: {
     proposalId: string;
@@ -326,6 +340,11 @@ export function useEvaluateProposal() {
       );
       setTxHash(hash);
       await waitForTx(hash);
+      addNotif(
+        "evaluation_done",
+        "Evaluation Complete",
+        `AI consensus reached for proposal ${params.proposalId}. Check the Validator Hub for results.`
+      );
       return hash;
     } catch (err: unknown) {
       const msg = (err as Error).message;
@@ -334,7 +353,7 @@ export function useEvaluateProposal() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [addNotif]);
 
   return { evaluate, loading, error, txHash };
 }

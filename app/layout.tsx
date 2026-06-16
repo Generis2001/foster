@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Nunito } from "next/font/google";
 import "./globals.css";
 import { WalletProvider } from "@/lib/WalletContext";
+import { NotificationProvider } from "@/lib/NotificationContext";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -26,7 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={`${plusJakarta.variable} ${nunito.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-white text-gray-900">
-        <WalletProvider>{children}</WalletProvider>
+        <NotificationProvider><WalletProvider>{children}</WalletProvider></NotificationProvider>
       </body>
     </html>
   );
