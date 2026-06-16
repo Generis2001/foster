@@ -7,7 +7,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { useWallet } from "@/lib/WalletContext";
 import { useSubmitProposal } from "@/lib/hooks";
-import { CONTRACTS, readContract, requireAddress, STUDIONET_CHAIN } from "@/lib/genlayer";
+import { CONTRACTS, readContract, requireAddress, STUDIONET_CHAIN, fromWei } from "@/lib/genlayer";
 import { Grant } from "@/lib/types";
 import {
   CheckCircle,
@@ -232,9 +232,9 @@ function SubmitProposalContent() {
                     <div className="font-medium text-gray-900 mb-1">{g.name}</div>
                     <div className="text-xs text-gray-400 mb-2">{g.description.slice(0, 80)}...</div>
                     <div className="flex gap-3 text-xs text-gray-400">
-                      <span>Max: {parseInt(g.max_grant_size).toLocaleString()} GEN</span>
+                      <span>Max: {fromWei(g.max_grant_size).toLocaleString()} GEN</span>
                       <span>·</span>
-                      <span>{parseInt(g.remaining_budget).toLocaleString()} GEN remaining</span>
+                      <span>{fromWei(g.remaining_budget).toLocaleString()} GEN remaining</span>
                     </div>
                   </button>
                 ))}
@@ -250,7 +250,7 @@ function SubmitProposalContent() {
               </div>
               {selectedGrant && (
                 <div className="text-xs text-gray-500 px-3 py-2 rounded-lg bg-gray-50 border border-gray-200">
-                  Applying to: <span className="text-gray-700 font-medium">{selectedGrant.name}</span> · Max {parseInt(selectedGrant.max_grant_size).toLocaleString()} GEN
+                  Applying to: <span className="text-gray-700 font-medium">{selectedGrant.name}</span> · Max {fromWei(selectedGrant.max_grant_size).toLocaleString()} GEN
                 </div>
               )}
               <Input label="Project Title" placeholder="Decentralized AI Oracle Network" value={form.title} onChange={(e) => u("title", e.target.value)} required />
@@ -262,7 +262,7 @@ function SubmitProposalContent() {
                 placeholder="10000"
                 value={form.requestedAmount}
                 onChange={(e) => u("requestedAmount", e.target.value)}
-                hint={selectedGrant ? `Max: ${parseInt(selectedGrant.max_grant_size).toLocaleString()} GEN` : ""}
+                hint={selectedGrant ? `Max: ${fromWei(selectedGrant.max_grant_size).toLocaleString()} GEN` : ""}
                 required
               />
               <div className="grid grid-cols-2 gap-4">
