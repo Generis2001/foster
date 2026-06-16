@@ -34,6 +34,7 @@ interface ChainStats {
   proposalCount: number;
   fundedCount: number;
   activeGrants: number;
+  grants: Grant[];
 }
 
 async function fetchChainStats(): Promise<ChainStats> {
@@ -41,13 +42,14 @@ async function fetchChainStats(): Promise<ChainStats> {
   let proposalCount = 0;
   let fundedCount = 0;
   let activeGrants = 0;
+  let grants: Grant[] = [];
 
   try {
     if (CONTRACTS.grantManager) {
       const gmAddr = requireAddress(CONTRACTS.grantManager, "GrantManager");
       const count = (await readContract(gmAddr, "get_grant_count", [])) as bigint;
       const ids = Array.from({ length: Number(count) }, (_, i) => `grant_${i}`);
-      const grants = (await Promise.all(ids.map(async (id) => {
+      grants = (await Promise.all(ids.map(async (id) => {
         const json = await readContract(gmAddr, "get_grant", [id]);
         if (!json || json === "") return null;
         return JSON.parse(json as string) as Grant;
@@ -66,8 +68,17 @@ async function fetchChainStats(): Promise<ChainStats> {
     }
   } catch { /* ignore */ }
 
-  return { genAvailable, proposalCount, fundedCount, activeGrants };
+  return { genAvailable, proposalCount, fundedCount, activeGrants, grants };
 }
+
+const CARD_PALETTES = [
+  { color: "text-blue-600", bg: "bg-blue-50", dot: "bg-blue-500", bar: "bg-blue-500" },
+  { color: "text-violet-600", bg: "bg-violet-50", dot: "bg-violet-500", bar: "bg-violet-500" },
+  { color: "text-emerald-600", bg: "bg-emerald-50", dot: "bg-emerald-500", bar: "bg-emerald-500" },
+  { color: "text-orange-600", bg: "bg-orange-50", dot: "bg-orange-500", bar: "bg-orange-500" },
+  { color: "text-cyan-600", bg: "bg-cyan-50", dot: "bg-cyan-500", bar: "bg-cyan-500" },
+  { color: "text-pink-600", bg: "bg-pink-50", dot: "bg-pink-500", bar: "bg-pink-500" },
+];
 
 const features = [
   {
@@ -108,15 +119,6 @@ const workflow = [
   { step: "05", title: "Milestone-Based Payouts", desc: "Approved teams submit proof of delivery. AI verifies completions and releases GEN in tranches." },
 ];
 
-const categories = [
-  { name: "Ecosystem Grants", count: 12, color: "text-blue-600", bg: "bg-blue-50", dot: "bg-blue-500" },
-  { name: "AI Research", count: 8, color: "text-violet-600", bg: "bg-violet-50", dot: "bg-violet-500" },
-  { name: "Infrastructure", count: 15, color: "text-emerald-600", bg: "bg-emerald-50", dot: "bg-emerald-500" },
-  { name: "Startup Incubators", count: 6, color: "text-orange-600", bg: "bg-orange-50", dot: "bg-orange-500" },
-  { name: "Open Source", count: 21, color: "text-cyan-600", bg: "bg-cyan-50", dot: "bg-cyan-500" },
-  { name: "Education", count: 9, color: "text-pink-600", bg: "bg-pink-50", dot: "bg-pink-500" },
-];
-
 const trustItems = [
   "Every decision is on-chain and auditable",
   "No committees, no hidden bias",
@@ -130,6 +132,8 @@ export default function HomePage() {
   useEffect(() => {
     fetchChainStats().then(setChainStats).catch(() => {});
   }, []);
+
+  const activeGrants = (chainStats?.grants ?? []).filter(g => g.status === "ACTIVE").slice(0, 6);
 
   const stats = chainStats
     ? [
@@ -288,32 +292,90 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Grant Categories */}
+      {/* Open Grant Programs */}
       <section className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-end justify-between mb-10">
             <div>
               <h2 className="text-4xl font-bold text-[#0d1117] mb-2 tracking-[-0.03em]">Open Grant Programs</h2>
-              <p className="text-gray-500 text-sm font-medium">Explore active funding across every category.</p>
+              <p className="text-gray-500 text-sm font-medium">
+                {chainStats
+                  ? activeGrants.length > 0
+                    ? `${activeGrants.length} active program${activeGrants.length !== 1 ? "s" : ""} on GenLayer StudioNet`
+                    : "No active grant programs yet — be the first to create one."
+                  : "Loading from GenLayer StudioNet..."}
+              </p>
             </div>
             <Link href="/grants" className="text-sm font-semibold text-[#0E2D6B] hover:text-[#163a87] flex items-center gap-1 transition-colors tracking-[-0.01em]">
               View all <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {categories.map(({ name, count, color, bg, dot }) => (
-              <Link href="/grants" key={name}>
-                <div className="card card-hover p-5 cursor-pointer">
-                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${bg} ${color} text-xs font-bold mb-4 tracking-[-0.01em]`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
-                    {name}
-                  </div>
-                  <div className="text-3xl font-bold text-[#0d1117] tracking-[-0.04em]">{count}</div>
-                  <div className="text-xs text-gray-400 mt-0.5 font-semibold uppercase tracking-[0.04em]">active grants</div>
+
+          {!chainStats && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="card p-5 animate-pulse">
+                  <div className="h-6 w-24 rounded-full bg-gray-100 mb-4" />
+                  <div className="h-5 w-32 rounded bg-gray-100 mb-2" />
+                  <div className="h-4 w-full rounded bg-gray-100 mb-1" />
+                  <div className="h-4 w-3/4 rounded bg-gray-100" />
                 </div>
+              ))}
+            </div>
+          )}
+
+          {chainStats && activeGrants.length === 0 && (
+            <div className="text-center py-16 card rounded-2xl">
+              <div className="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                <Coins className="w-6 h-6 text-gray-400" />
+              </div>
+              <div className="text-gray-500 font-medium mb-1">No open grants yet</div>
+              <div className="text-sm text-gray-400 mb-4">Create the first grant program on Foster.</div>
+              <Link
+                href="/grants/create"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[#0E2D6B] hover:text-[#163a87] transition-colors"
+              >
+                Create a Grant Program <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-            ))}
-          </div>
+            </div>
+          )}
+
+          {chainStats && activeGrants.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {activeGrants.map((grant, i) => {
+                const palette = CARD_PALETTES[i % CARD_PALETTES.length];
+                const areas = grant.focus_areas.split(",").map(s => s.trim()).filter(Boolean);
+                const remaining = parseInt(grant.remaining_budget);
+                const total = parseInt(grant.total_budget);
+                const pct = total > 0 ? Math.round(((total - remaining) / total) * 100) : 0;
+                return (
+                  <Link href={`/proposals/submit?grant=${grant.id}`} key={grant.id}>
+                    <div className="card card-hover p-5 cursor-pointer h-full flex flex-col gap-3">
+                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full ${palette.bg} ${palette.color} text-xs font-bold self-start tracking-[-0.01em]`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${palette.dot}`} />
+                        {areas[0] || "Grant"}
+                      </div>
+                      <div className="font-bold text-[#0d1117] text-sm leading-snug tracking-[-0.02em]">{grant.name}</div>
+                      <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed font-medium flex-1">{grant.description}</p>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs text-gray-400">
+                          <span>{remaining.toLocaleString()} GEN left</span>
+                          <span>{pct}% allocated</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                          <div className={`h-full rounded-full ${palette.bar} transition-all`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] text-gray-400 font-semibold uppercase tracking-[0.04em]">
+                        <span>{grant.proposal_count} proposal{grant.proposal_count !== 1 ? "s" : ""}</span>
+                        <span>Max {parseInt(grant.max_grant_size).toLocaleString()} GEN</span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
