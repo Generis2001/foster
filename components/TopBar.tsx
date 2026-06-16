@@ -1,14 +1,27 @@
 "use client";
-import { Wallet, Bell, ChevronDown, Loader2, AlertCircle } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Wallet, Bell, ChevronDown, Loader2, AlertCircle, LogOut } from "lucide-react";
 import { Button } from "./ui/Button";
 import { useWallet } from "@/lib/WalletContext";
 
 export function TopBar({ title }: { title?: string }) {
-  const { address, connected, connecting, error, connect, balance } = useWallet();
+  const { address, connected, connecting, error, connect, disconnect, balance } = useWallet();
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   function shortAddr(addr: string) {
     return `${addr.slice(0, 6)}···${addr.slice(-4)}`;
   }
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 h-14 flex items-center justify-between px-6 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
@@ -27,16 +40,33 @@ export function TopBar({ title }: { title?: string }) {
         </button>
 
         {connected && address ? (
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-[13px] font-semibold hover:bg-gray-100 transition-colors tracking-[-0.01em]">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-gray-800">{shortAddr(address)}</span>
-            {balance && (
-              <span className="text-gray-400 text-xs border-l border-gray-200 pl-2 font-medium">
-                {balance} GEN
-              </span>
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setOpen((v) => !v)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-50 border border-gray-200 text-[13px] font-semibold hover:bg-gray-100 transition-colors tracking-[-0.01em]"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-gray-800">{shortAddr(address)}</span>
+              {balance && (
+                <span className="text-gray-400 text-xs border-l border-gray-200 pl-2 font-medium">
+                  {balance} GEN
+                </span>
+              )}
+              <ChevronDown className="w-3 h-3 text-gray-400" />
+            </button>
+
+            {open && (
+              <div className="absolute right-0 mt-1.5 w-44 rounded-xl border border-gray-100 bg-white shadow-lg py-1 z-50">
+                <button
+                  onClick={() => { disconnect(); setOpen(false); }}
+                  className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Disconnect wallet
+                </button>
+              </div>
             )}
-            <ChevronDown className="w-3 h-3 text-gray-400" />
-          </button>
+          </div>
         ) : (
           <Button size="sm" onClick={connect} disabled={connecting}>
             {connecting ? (
