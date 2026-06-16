@@ -93,7 +93,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(130deg, #2563eb 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #4a90d9 0%, #1e3a8a 40%, #0e2459 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
