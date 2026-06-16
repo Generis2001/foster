@@ -186,7 +186,7 @@ export default function HomePage() {
 
           <h1 className="text-5xl md:text-[60px] font-bold leading-[1.08] tracking-[-0.035em] text-[#0d1117] mb-6 max-w-3xl mx-auto">
             Merit-based funding,{" "}
-            <span className="gradient-text">decided by AI consensus</span>
+            <span className="gradient-text">decided by AI consensus.</span>
           </h1>
 
           <p className="text-[17px] text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed font-medium">
