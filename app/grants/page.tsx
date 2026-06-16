@@ -1,32 +1,39 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import AppLayout from "@/components/AppLayout";
 import { Grant } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { CONTRACTS, readContract, requireAddress, fromWei } from "@/lib/genlayer";
 import {
-  Search,
-  Filter,
-  Coins,
-  Clock,
-  ArrowRight,
-  TrendingUp,
-  Loader2,
-  AlertTriangle,
-  Plus,
+  Search, Filter, Coins, Clock, ArrowRight, TrendingUp,
+  Loader2, AlertTriangle, Plus, X,
 } from "lucide-react";
 
 const CATEGORIES = [
-  "All",
-  "AI",
-  "Infrastructure",
-  "Open Source",
-  "Education",
-  "DeFi",
-  "Research",
-  "Developer Tools",
+  "All", "AI", "Infrastructure", "Open Source",
+  "Education", "DeFi", "Research", "Developer Tools",
 ];
+
+const STATUSES = ["All", "ACTIVE", "PAUSED", "CLOSED"];
+
+interface Filters {
+  status: string;
+  minBudget: string;
+  maxBudget: string;
+  deadlineBefore: string;
+}
+
+const DEFAULT_FILTERS: Filters = { status: "All", minBudget: "", maxBudget: "", deadlineBefore: "" };
+
+function activeFilterCount(f: Filters) {
+  return [
+    f.status !== "All",
+    f.minBudget !== "",
+    f.maxBudget !== "",
+    f.deadlineBefore !== "",
+  ].filter(Boolean).length;
+}
 
 function GrantCard({ grant }: { grant: Grant }) {
   const focusAreas = grant.focus_areas.split(",");
@@ -42,9 +49,7 @@ function GrantCard({ grant }: { grant: Grant }) {
           <Coins className="w-5 h-5 text-blue-600" />
         </div>
         <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium border ${
-          grant.status === "ACTIVE"
-            ? "badge-green"
-            : "badge-gray"
+          grant.status === "ACTIVE" ? "badge-green" : "badge-gray"
         }`}>
           {grant.status}
         </span>
@@ -84,10 +89,7 @@ function GrantCard({ grant }: { grant: Grant }) {
           <span>{pct}% allocated</span>
         </div>
         <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-blue-600 transition-all"
-            style={{ width: `${pct}%` }}
-          />
+          <div className="h-full rounded-full bg-blue-600 transition-all" style={{ width: `${pct}%` }} />
         </div>
       </div>
 
@@ -111,6 +113,9 @@ export default function GrantsPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function load() {
@@ -140,16 +145,41 @@ export default function GrantsPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) {
+        setFilterOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  function updateFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
+    setFilters((f) => ({ ...f, [key]: value }));
+  }
+
+  function clearFilters() {
+    setFilters(DEFAULT_FILTERS);
+  }
+
   const filtered = grants.filter((g) => {
-    const matchSearch =
-      !search ||
-      g.name.toLowerCase().includes(search.toLowerCase()) ||
-      g.description.toLowerCase().includes(search.toLowerCase());
-    const matchCat =
-      category === "All" ||
-      g.focus_areas.toLowerCase().includes(category.toLowerCase());
-    return matchSearch && matchCat;
+    if (search && !g.name.toLowerCase().includes(search.toLowerCase()) &&
+        !g.description.toLowerCase().includes(search.toLowerCase())) return false;
+    if (category !== "All" && !g.focus_areas.toLowerCase().includes(category.toLowerCase())) return false;
+    if (filters.status !== "All" && g.status !== filters.status) return false;
+    const remaining = fromWei(g.remaining_budget);
+    if (filters.minBudget !== "" && remaining < parseFloat(filters.minBudget)) return false;
+    if (filters.maxBudget !== "" && remaining > parseFloat(filters.maxBudget)) return false;
+    if (filters.deadlineBefore !== "") {
+      const deadlineTs = parseInt(g.deadline) * 1000;
+      const beforeTs = new Date(filters.deadlineBefore).getTime();
+      if (deadlineTs > beforeTs) return false;
+    }
+    return true;
   });
+
+  const numActiveFilters = activeFilterCount(filters);
 
   return (
     <AppLayout title="Discover Grants">
@@ -158,7 +188,7 @@ export default function GrantsPage() {
           <div>
             <h1 className="text-xl font-bold text-gray-900">Grant Programs</h1>
             <p className="text-sm text-gray-400 mt-0.5">
-              {loading ? "Loading..." : `${grants.length} active grants on GenLayer StudioNet`}
+              {loading ? "Loading..." : `${grants.length} grants on GenLayer StudioNet`}
             </p>
           </div>
           <Link href="/grants/create">
@@ -180,9 +210,92 @@ export default function GrantsPage() {
               className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-white border border-gray-200 text-gray-900 placeholder-gray-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 shadow-sm"
             />
           </div>
-          <Button variant="secondary" size="md">
-            <Filter className="w-4 h-4" /> Filter
-          </Button>
+
+          <div className="relative" ref={filterRef}>
+            <button
+              onClick={() => setFilterOpen((v) => !v)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-medium transition-all shadow-sm ${
+                numActiveFilters > 0 || filterOpen
+                  ? "bg-blue-50 border-blue-200 text-blue-700"
+                  : "bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-800"
+              }`}
+            >
+              <Filter className="w-4 h-4" />
+              Filter
+              {numActiveFilters > 0 && (
+                <span className="w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center leading-none">
+                  {numActiveFilters}
+                </span>
+              )}
+            </button>
+
+            {filterOpen && (
+              <div className="absolute right-0 mt-1.5 w-72 rounded-xl border border-gray-100 bg-white shadow-lg z-50 p-4 space-y-5">
+                {/* Status */}
+                <div>
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Status</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {STATUSES.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => updateFilter("status", s)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${
+                          filters.status === s
+                            ? "bg-blue-600 text-white border-blue-600"
+                            : "bg-white text-gray-500 border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        {s === "All" ? "All statuses" : s.charAt(0) + s.slice(1).toLowerCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Budget remaining */}
+                <div>
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Budget Remaining (GEN)</div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={filters.minBudget}
+                      onChange={(e) => updateFilter("minBudget", e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                    />
+                    <span className="text-gray-400 text-xs flex-shrink-0">to</span>
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={filters.maxBudget}
+                      onChange={(e) => updateFilter("maxBudget", e.target.value)}
+                      className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                    />
+                  </div>
+                </div>
+
+                {/* Deadline */}
+                <div>
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Deadline On or Before</div>
+                  <input
+                    type="date"
+                    value={filters.deadlineBefore}
+                    onChange={(e) => updateFilter("deadlineBefore", e.target.value)}
+                    className="w-full px-3 py-1.5 rounded-lg border border-gray-200 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                  />
+                </div>
+
+                {/* Clear */}
+                {numActiveFilters > 0 && (
+                  <button
+                    onClick={clearFilters}
+                    className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 font-medium transition-colors"
+                  >
+                    <X className="w-3 h-3" /> Clear all filters
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-1">
@@ -230,14 +343,16 @@ export default function GrantsPage() {
             <div className="text-sm text-gray-400">
               {grants.length === 0
                 ? "Be the first to create a grant program on Foster."
-                : "Try adjusting your search or category filter."}
+                : "Try adjusting your search or filters."}
             </div>
-            {grants.length === 0 && (
+            {grants.length === 0 ? (
               <Link href="/grants/create" className="mt-4 inline-block">
-                <Button size="sm">
-                  <Plus className="w-3.5 h-3.5" /> Create First Grant
-                </Button>
+                <Button size="sm"><Plus className="w-3.5 h-3.5" /> Create First Grant</Button>
               </Link>
+            ) : (
+              <button onClick={() => { setSearch(""); setCategory("All"); clearFilters(); }} className="mt-4 text-sm text-blue-600 hover:underline font-medium">
+                Clear all filters
+              </button>
             )}
           </div>
         )}
@@ -254,14 +369,14 @@ export default function GrantsPage() {
           <div className="flex items-center gap-6 p-4 card rounded-xl text-xs text-gray-400">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-3.5 h-3.5" />
-              {grants.length} total grant programs
+              {filtered.length === grants.length
+                ? `${grants.length} total grant programs`
+                : `${filtered.length} of ${grants.length} grants`}
             </div>
             <div>
               {grants.reduce((sum, g) => sum + fromWei(g.remaining_budget), 0).toLocaleString()} GEN available
             </div>
-            <div>
-              {grants.reduce((sum, g) => sum + g.funded_count, 0)} projects funded
-            </div>
+            <div>{grants.reduce((sum, g) => sum + g.funded_count, 0)} projects funded</div>
           </div>
         )}
       </div>
