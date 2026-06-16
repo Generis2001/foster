@@ -8,7 +8,6 @@ class GrantManager(gl.Contract):
     grant_count: u256
     grant_balances: TreeMap[str, u256]
     grant_sponsors: TreeMap[str, str]
-    grant_ids: DynArray[str]
 
     def __init__(self):
         self.grant_count = u256(0)
@@ -23,10 +22,7 @@ class GrantManager(gl.Contract):
 
     @gl.public.view
     def get_all_grant_ids(self) -> list[str]:
-        result = []
-        for gid in self.grant_ids:
-            result.append(gid)
-        return result
+        return [f"grant_{i}" for i in range(int(self.grant_count))]
 
     @gl.public.view
     def get_grant_count(self) -> u256:
@@ -106,9 +102,6 @@ class GrantManager(gl.Contract):
 
             self.grant_sponsors[grant_id] = sender
             log.append(f"WRITE:grant_sponsors={sender}")
-
-            self.grant_ids.append(grant_id)
-            log.append(f"WRITE:grant_ids.append")
 
             self.grant_count = u256(int(self.grant_count) + 1)
             log.append(f"WRITE:grant_count={int(self.grant_count)}")
