@@ -1,7 +1,6 @@
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 from genlayer import *
 import json
-import traceback
 
 
 class GrantManager(gl.Contract):
@@ -13,7 +12,6 @@ class GrantManager(gl.Contract):
 
     def __init__(self):
         self.grant_count = u256(0)
-        self.grant_ids = DynArray[str]()
 
     @gl.public.view
     def get_grant(self, grant_id: str) -> str:
@@ -47,50 +45,43 @@ class GrantManager(gl.Contract):
     ) -> str:
         log = []
         try:
-            # ── Input logging ────────────────────────────────────────────────
             sender = str(gl.message.sender_address)
             deposit = int(gl.message.value)
-            log.append(f"INPUT name={repr(name)}")
-            log.append(f"INPUT total_budget={int(total_budget)}")
-            log.append(f"INPUT max_grant_size={int(max_grant_size)}")
-            log.append(f"INPUT deadline={int(deadline)}")
-            log.append(f"INPUT deposit(msg.value)={deposit}")
-            log.append(f"INPUT sender={sender}")
+            log.append(f"sender={sender}")
+            log.append(f"deposit={deposit}")
+            log.append(f"total_budget={int(total_budget)}")
+            log.append(f"max_grant_size={int(max_grant_size)}")
+            log.append(f"deadline={int(deadline)}")
+            log.append(f"name={repr(name)}")
 
-            # ── Validation ───────────────────────────────────────────────────
-            assert name.strip() != "", \
-                f"Grant name cannot be empty"
-            log.append("VALID name non-empty")
+            assert name.strip() != "", "Grant name cannot be empty"
+            log.append("VALID:name")
 
             assert int(total_budget) > 0, \
                 f"total_budget must be > 0, got {int(total_budget)}"
-            log.append(f"VALID total_budget={int(total_budget)}")
+            log.append("VALID:total_budget")
 
             assert int(max_grant_size) > 0, \
                 f"max_grant_size must be > 0, got {int(max_grant_size)}"
-            log.append(f"VALID max_grant_size={int(max_grant_size)}")
+            log.append("VALID:max_grant_size")
 
             assert int(max_grant_size) <= int(total_budget), \
-                f"max_grant_size ({int(max_grant_size)}) must be <= total_budget ({int(total_budget)})"
-            log.append("VALID max_grant_size <= total_budget")
+                f"max_grant_size {int(max_grant_size)} > total_budget {int(total_budget)}"
+            log.append("VALID:max<=budget")
 
             assert int(deadline) > 0, \
                 f"deadline must be > 0, got {int(deadline)}"
-            log.append(f"VALID deadline={int(deadline)}")
+            log.append("VALID:deadline")
 
-            assert description.strip() != "", \
-                f"Description cannot be empty"
-            log.append("VALID description non-empty")
+            assert description.strip() != "", "Description cannot be empty"
+            log.append("VALID:description")
 
-            assert eligibility.strip() != "", \
-                f"Eligibility criteria cannot be empty"
-            log.append("VALID eligibility non-empty")
+            assert eligibility.strip() != "", "Eligibility cannot be empty"
+            log.append("VALID:eligibility")
 
-            # ── Compute IDs ──────────────────────────────────────────────────
             grant_id = f"grant_{int(self.grant_count)}"
-            log.append(f"COMPUTED grant_id={grant_id}")
+            log.append(f"grant_id={grant_id}")
 
-            # ── Build grant data ─────────────────────────────────────────────
             grant_data = {
                 "id": grant_id,
                 "name": name,
@@ -106,35 +97,29 @@ class GrantManager(gl.Contract):
                 "proposal_count": 0,
                 "funded_count": 0,
             }
-            grant_json = json.dumps(grant_data)
-            log.append(f"COMPUTED grant_json len={len(grant_json)}")
 
-            # ── State writes ─────────────────────────────────────────────────
-            self.grants[grant_id] = grant_json
-            log.append(f"WRITE grants[{grant_id}]")
+            self.grants[grant_id] = json.dumps(grant_data)
+            log.append(f"WRITE:grants[{grant_id}]")
 
             self.grant_balances[grant_id] = u256(deposit)
-            log.append(f"WRITE grant_balances[{grant_id}]={deposit}")
+            log.append(f"WRITE:grant_balances={deposit}")
 
             self.grant_sponsors[grant_id] = sender
-            log.append(f"WRITE grant_sponsors[{grant_id}]={sender}")
+            log.append(f"WRITE:grant_sponsors={sender}")
 
             self.grant_ids.append(grant_id)
-            log.append(f"WRITE grant_ids.append({grant_id})")
+            log.append(f"WRITE:grant_ids.append")
 
             self.grant_count = u256(int(self.grant_count) + 1)
-            log.append(f"WRITE grant_count={int(self.grant_count)}")
+            log.append(f"WRITE:grant_count={int(self.grant_count)}")
 
-            log.append("SUCCESS")
             return grant_id
 
+        except AssertionError as e:
+            raise AssertionError(f"{e} [steps: {' | '.join(log[-4:])}]")
         except Exception as e:
-            tb = traceback.format_exc()
-            last = " | ".join(log[-5:]) if log else "no steps logged"
             raise Exception(
-                f"create_grant_program FAILED — {type(e).__name__}: {e} "
-                f"| last_steps: [{last}] "
-                f"| traceback: {tb.strip()}"
+                f"{type(e).__name__}: {e} [steps: {' | '.join(log[-4:])}]"
             )
 
     @gl.public.write.payable
