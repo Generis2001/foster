@@ -150,6 +150,14 @@ export async function ensureStudioNet() {
   }
 }
 
+export function fromWei(val: string | number): number {
+  try {
+    return Number(BigInt(String(val)) / BigInt("1000000000000000000"));
+  } catch {
+    return 0;
+  }
+}
+
 declare global {
   interface Window {
     ethereum?: {

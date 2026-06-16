@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowRight, Shield, Brain, TrendingUp, Globe, Lock, Coins, CheckCircle } from "lucide-react";
 import { CoBrandLockup } from "@/components/CoBrandLockup";
 import { FosterLogo } from "@/components/FosterLogo";
-import { CONTRACTS, readContract, requireAddress } from "@/lib/genlayer";
+import { CONTRACTS, readContract, requireAddress, fromWei } from "@/lib/genlayer";
 import { Grant, Proposal } from "@/lib/types";
 
 function AnimatedCounter({ target, duration = 2000, suffix = "", prefix = "" }: { target: number; duration?: number; suffix?: string; prefix?: string }) {
@@ -54,7 +54,7 @@ async function fetchChainStats(): Promise<ChainStats> {
         if (!json || json === "") return null;
         return JSON.parse(json as string) as Grant;
       }))).filter(Boolean) as Grant[];
-      genAvailable = grants.reduce((s, g) => s + parseInt(g.remaining_budget), 0);
+      genAvailable = grants.reduce((s, g) => s + fromWei(g.remaining_budget), 0);
       fundedCount = grants.reduce((s, g) => s + g.funded_count, 0);
       activeGrants = grants.filter(g => g.status === "ACTIVE").length;
     }
@@ -137,7 +137,7 @@ export default function HomePage() {
 
   const stats = chainStats
     ? [
-        { label: "GEN Available", value: Math.round(chainStats.genAvailable / 1e18), suffix: "" },
+        { label: "GEN Available", value: chainStats.genAvailable, suffix: "" },
         { label: "Total Proposals", value: chainStats.proposalCount, suffix: "" },
         { label: "Projects Funded", value: chainStats.fundedCount, suffix: "" },
         { label: "Active Grants", value: chainStats.activeGrants, suffix: "" },
@@ -345,8 +345,8 @@ export default function HomePage() {
               {activeGrants.map((grant, i) => {
                 const palette = CARD_PALETTES[i % CARD_PALETTES.length];
                 const areas = grant.focus_areas.split(",").map(s => s.trim()).filter(Boolean);
-                const remaining = parseInt(grant.remaining_budget);
-                const total = parseInt(grant.total_budget);
+                const remaining = fromWei(grant.remaining_budget);
+                const total = fromWei(grant.total_budget);
                 const pct = total > 0 ? Math.round(((total - remaining) / total) * 100) : 0;
                 return (
                   <Link href={`/proposals/submit?grant=${grant.id}`} key={grant.id}>
@@ -368,7 +368,7 @@ export default function HomePage() {
                       </div>
                       <div className="flex items-center justify-between text-[10px] text-gray-400 font-semibold uppercase tracking-[0.04em]">
                         <span>{grant.proposal_count} proposal{grant.proposal_count !== 1 ? "s" : ""}</span>
-                        <span>Max {parseInt(grant.max_grant_size).toLocaleString()} GEN</span>
+                        <span>Max {fromWei(grant.max_grant_size).toLocaleString()} GEN</span>
                       </div>
                     </div>
                   </Link>

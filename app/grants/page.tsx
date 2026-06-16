@@ -4,7 +4,7 @@ import AppLayout from "@/components/AppLayout";
 import { Grant } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
-import { CONTRACTS, readContract, requireAddress } from "@/lib/genlayer";
+import { CONTRACTS, readContract, requireAddress, fromWei } from "@/lib/genlayer";
 import {
   Search,
   Filter,
@@ -30,8 +30,9 @@ const CATEGORIES = [
 
 function GrantCard({ grant }: { grant: Grant }) {
   const focusAreas = grant.focus_areas.split(",");
-  const totalBudget = parseInt(grant.total_budget);
-  const remaining = parseInt(grant.remaining_budget);
+  const totalBudget = fromWei(grant.total_budget);
+  const remaining = fromWei(grant.remaining_budget);
+  const maxGrant = fromWei(grant.max_grant_size);
   const pct = totalBudget > 0 ? Math.round(((totalBudget - remaining) / totalBudget) * 100) : 0;
 
   return (
@@ -64,7 +65,7 @@ function GrantCard({ grant }: { grant: Grant }) {
 
       <div className="grid grid-cols-3 gap-3 text-center py-3 border-y border-gray-100">
         <div>
-          <div className="text-sm font-semibold text-gray-900">{parseInt(grant.max_grant_size).toLocaleString()}</div>
+          <div className="text-sm font-semibold text-gray-900">{maxGrant.toLocaleString()}</div>
           <div className="text-[10px] text-gray-400 mt-0.5">Max GEN</div>
         </div>
         <div>
@@ -256,7 +257,7 @@ export default function GrantsPage() {
               {grants.length} total grant programs
             </div>
             <div>
-              {grants.reduce((sum, g) => sum + parseInt(g.remaining_budget), 0).toLocaleString()} GEN available
+              {grants.reduce((sum, g) => sum + fromWei(g.remaining_budget), 0).toLocaleString()} GEN available
             </div>
             <div>
               {grants.reduce((sum, g) => sum + g.funded_count, 0)} projects funded
