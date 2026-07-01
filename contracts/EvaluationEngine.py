@@ -55,47 +55,11 @@ Provide your evaluation as a JSON object with exactly these fields:
 - "suggested_funding": integer (recommended funding amount in GEN, may differ from requested)
 
 Return ONLY valid JSON, no markdown or explanation."""
-            return gl.nondet.exec_prompt(prompt, response_format="json")
+            raw = gl.nondet.exec_prompt(prompt, response_format="json")
+            parsed = json.loads(raw)
+            return json.dumps(parsed, sort_keys=True)
 
-        def validator_fn(leader_result) -> bool:
-            if not isinstance(leader_result, gl.vm.Return):
-                return False
-
-            leader_data = leader_result.calldata
-
-            my_prompt = f"""You are an expert grant evaluator for a blockchain and AI innovation fund.
-
-Evaluate the following grant proposal against the provided criteria. Be thorough, fair, and objective.
-
-GRANT CRITERIA:
-{grant_criteria}
-
-PROPOSAL DATA:
-{proposal_json}
-
-Provide your evaluation as a JSON object with exactly these fields:
-- "score": integer 0-100 (overall merit score)
-- "recommendation": one of "APPROVE", "REJECT", or "REVISION"
-- "technical_score": integer 0-100
-- "impact_score": integer 0-100
-- "team_score": integer 0-100
-- "feasibility_score": integer 0-100
-- "reasoning": string explaining your decision (2-3 sentences)
-- "strengths": list of 2-3 key strengths
-- "concerns": list of 0-3 concerns or areas for improvement
-- "suggested_funding": integer (recommended funding amount in GEN, may differ from requested)
-
-Return ONLY valid JSON, no markdown or explanation."""
-
-            my_result = gl.nondet.exec_prompt(my_prompt, response_format="json")
-
-            # Consensus: same recommendation and scores within 15 points
-            same_recommendation = my_result.get("recommendation") == leader_data.get("recommendation")
-            score_close = abs(my_result.get("score", 0) - leader_data.get("score", 0)) <= 15
-
-            return same_recommendation and score_close
-
-        result = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        result = json.loads(gl.eq_principle_strict_eq(leader_fn))
 
         eval_data = {
             "id": eval_id,

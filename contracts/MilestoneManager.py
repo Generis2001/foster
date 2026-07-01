@@ -116,34 +116,11 @@ Return JSON with:
 - "feedback": string (constructive feedback for the team)
 
 Return ONLY valid JSON."""
-            return gl.nondet.exec_prompt(prompt, response_format="json")
+            raw = gl.nondet.exec_prompt(prompt, response_format="json")
+            parsed = json.loads(raw)
+            return json.dumps(parsed, sort_keys=True)
 
-        def validator_fn(leader_result) -> bool:
-            if not isinstance(leader_result, gl.vm.Return):
-                return False
-
-            leader_data = leader_result.calldata
-
-            my_prompt = f"""You are a milestone verifier for a blockchain grant program.
-
-MILESTONE: {title}
-SUCCESS CRITERIA: {success_criteria}
-PROOF DESCRIPTION: {proof_description}
-
-Has this milestone been successfully completed based on the evidence provided?
-
-Return JSON with:
-- "verified": boolean
-- "confidence": integer 0-100
-- "reasoning": string
-- "feedback": string
-
-Return ONLY valid JSON."""
-            my_result = gl.nondet.exec_prompt(my_prompt, response_format="json")
-
-            return my_result.get("verified") == leader_data.get("verified")
-
-        verification = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        verification = json.loads(gl.eq_principle_strict_eq(leader_fn))
 
         milestone_data["verification_result"] = verification
         if verification.get("verified", False):
