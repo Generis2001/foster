@@ -94,7 +94,7 @@ class GrantManager(gl.Contract):
                 "funded_count": 0,
             }
 
-            self.grants[grant_id] = json.dumps(grant_data)
+            self.grants[grant_id] = json.dumps(grant_data, sort_keys=True)
             log.append(f"WRITE:grants[{grant_id}]")
 
             self.grant_balances[grant_id] = u256(deposit)
@@ -128,7 +128,7 @@ class GrantManager(gl.Contract):
         grant_data["remaining_budget"] = str(
             int(grant_data.get("remaining_budget", "0")) + deposit
         )
-        self.grants[grant_id] = json.dumps(grant_data)
+        self.grants[grant_id] = json.dumps(grant_data, sort_keys=True)
 
     @gl.public.write
     def update_grant_status(self, grant_id: str, status: str) -> None:
@@ -139,7 +139,7 @@ class GrantManager(gl.Contract):
 
         grant_data = json.loads(grant_json)
         grant_data["status"] = status
-        self.grants[grant_id] = json.dumps(grant_data)
+        self.grants[grant_id] = json.dumps(grant_data, sort_keys=True)
 
     @gl.public.write
     def release_grant_funding(self, grant_id: str, recipient: str, amount: u256) -> None:
@@ -157,6 +157,6 @@ class GrantManager(gl.Contract):
             int(grant_data.get("remaining_budget", "0")) - int(amount)
         )
         grant_data["funded_count"] = grant_data.get("funded_count", 0) + 1
-        self.grants[grant_id] = json.dumps(grant_data)
+        self.grants[grant_id] = json.dumps(grant_data, sort_keys=True)
 
         gl.message.send_native_token(recipient, amount)

@@ -51,7 +51,7 @@ class ProposalManager(gl.Contract):
         website_url: str,
     ) -> str:
         proposal_id = f"prop_{self.proposal_count}"
-        proposer = gl.message.sender_address
+        proposer = str(gl.message.sender_address)
 
         proposal_data = {
             "id": proposal_id,
@@ -73,7 +73,7 @@ class ProposalManager(gl.Contract):
             "appeal_count": 0,
         }
 
-        self.proposals[proposal_id] = json.dumps(proposal_data)
+        self.proposals[proposal_id] = json.dumps(proposal_data, sort_keys=True)
 
         if grant_id not in self.grant_proposals:
             self.grant_proposals[grant_id] = DynArray[str]()
@@ -101,7 +101,7 @@ class ProposalManager(gl.Contract):
         assert proposal_json != "", "Proposal not found"
 
         proposal_data = json.loads(proposal_json)
-        assert proposal_data["proposer"] == gl.message.sender_address, "Not proposer"
+        assert proposal_data["proposer"] == str(gl.message.sender_address), "Not proposer"
         assert proposal_data["status"] == "PENDING", "Cannot update non-pending proposal"
 
         proposal_data["title"] = title
@@ -111,7 +111,7 @@ class ProposalManager(gl.Contract):
         proposal_data["roadmap"] = roadmap
         proposal_data["impact_statement"] = impact_statement
 
-        self.proposals[proposal_id] = json.dumps(proposal_data)
+        self.proposals[proposal_id] = json.dumps(proposal_data, sort_keys=True)
 
     @gl.public.write
     def update_proposal_status(self, proposal_id: str, status: str) -> None:
@@ -120,7 +120,7 @@ class ProposalManager(gl.Contract):
 
         proposal_data = json.loads(proposal_json)
         proposal_data["status"] = status
-        self.proposals[proposal_id] = json.dumps(proposal_data)
+        self.proposals[proposal_id] = json.dumps(proposal_data, sort_keys=True)
 
     @gl.public.write
     def request_appeal(self, proposal_id: str, reason: str) -> None:
@@ -128,13 +128,13 @@ class ProposalManager(gl.Contract):
         assert proposal_json != "", "Proposal not found"
 
         proposal_data = json.loads(proposal_json)
-        assert proposal_data["proposer"] == gl.message.sender_address, "Not proposer"
+        assert proposal_data["proposer"] == str(gl.message.sender_address), "Not proposer"
         assert proposal_data["status"] in ["REJECTED", "REVISION_REQUESTED"], "Cannot appeal"
 
         proposal_data["status"] = "APPEALED"
         proposal_data["appeal_count"] = proposal_data.get("appeal_count", 0) + 1
         proposal_data["appeal_reason"] = reason
-        self.proposals[proposal_id] = json.dumps(proposal_data)
+        self.proposals[proposal_id] = json.dumps(proposal_data, sort_keys=True)
 
     @gl.public.write
     def set_evaluation_result(
@@ -155,4 +155,4 @@ class ProposalManager(gl.Contract):
         else:
             proposal_data["status"] = "REVISION_REQUESTED"
 
-        self.proposals[proposal_id] = json.dumps(proposal_data)
+        self.proposals[proposal_id] = json.dumps(proposal_data, sort_keys=True)
